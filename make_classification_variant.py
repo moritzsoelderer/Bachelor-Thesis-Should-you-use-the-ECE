@@ -1,3 +1,8 @@
+import numpy as np
+from sklearn.datasets._samples_generator import _generate_hypercube
+from sklearn.utils import check_random_state
+
+
 def make_classification(
     n_samples=100,
     n_features=20,
