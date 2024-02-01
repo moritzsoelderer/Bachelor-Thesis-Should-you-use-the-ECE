@@ -204,16 +204,19 @@ def make_classification(
     X[:, :n_informative] = generator.standard_normal(size=(n_samples, n_informative))
 
     # Create each cluster; a variant of make_blobs
+    ### here I have to retrieve probabilites (redundant and repeated features should not matter to prob distribution)
     stop = 0
     for k, centroid in enumerate(centroids):
         start, stop = stop, stop + n_samples_per_cluster[k]
         y[start:stop] = k % n_classes  # assign labels
         X_k = X[start:stop, :n_informative]  # slice a view of the cluster
+        ### now we have pairs of X,y so I should be able to infere some connection
 
         A = 2 * generator.uniform(size=(n_informative, n_informative)) - 1
         X_k[...] = np.dot(X_k, A)  # introduce random covariance
 
         X_k += centroid  # shift the cluster to a vertex
+        ### I may need to consider random covariance and shift to cluster
 
     # Create redundant features
     if n_redundant > 0:
@@ -233,6 +236,7 @@ def make_classification(
         X[:, -n_useless:] = generator.standard_normal(size=(n_samples, n_useless))
 
     # Randomly replace labels
+    ### for binary classification I might just be able to switch the probabilites according to the flip_mask
     if flip_y >= 0.0:
         flip_mask = generator.uniform(size=n_samples) < flip_y
         y[flip_mask] = generator.randint(n_classes, size=flip_mask.sum())
