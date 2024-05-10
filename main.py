@@ -12,7 +12,10 @@ import matplotlib.pyplot as plt
 def calc_prob(x=None, k=0, round_to=3):
     if x is None:
         raise ValueError("x is required")
-    return round(sum([d.pdf(x) for d in dists[k]]) / sum([d.pdf(x) for dist in dists for d in dist]), round_to)
+    denominator = sum([d.pdf(x) for dist in dists for d in dist])
+    if denominator == 0:
+        return 0
+    return round(sum([d.pdf(x) for d in dists[k]]) / denominator, round_to)
 
 
 # initializing parameters
@@ -59,7 +62,7 @@ for example in test_examples:
 n_examples = 100000
 samples = []
 
-test_examples = [-10, -5, -2, -1, -0.5, -0.25, 0, 0.25, 0.5]
+test_examples = [-10, -5, -1, -0.5, 0, 0.5, 1, 5, 10]
 
 for test_example in test_examples:
     delta = .01  # delta inaccuracy for sample selection
