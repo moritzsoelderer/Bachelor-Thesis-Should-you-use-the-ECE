@@ -12,6 +12,7 @@ class ClassObject:
 
     def __init__(self, distributions):
         self.distributions = distributions
+        self.samples = [[]] * len(distributions)
 
     def sum_pdfs(self, x):
         return sum([dist.pdf(x) for dist in self.distributions])
@@ -33,6 +34,9 @@ class ClassObject:
 class DataGeneration:
     classes = list[ClassObject]
     n_features: int
+
+    samples: list[list]
+    labels: list = None
 
     def __init__(self, n_features: int, class_objects: list[ClassObject]):
         self.classes = class_objects
@@ -73,4 +77,26 @@ class DataGeneration:
                     samples.append(sample)
                     labels += [index for _ in range(len(sample))]
 
-        return [s for sample in samples for s in sample], labels
+        samples = [s for sample in samples for s in sample] #flatten out sample list
+        if overwrite:
+            self.samples = samples
+            self.labels = labels
+        return samples, labels
+
+    def scatter2d(self, axis1=0, axis2=1, colormap=None, show=True):
+        if colormap is None:
+            colormap = np.array(['red', 'blue'])
+        if len(colormap) < len(self.classes):
+            diff = abs(len(self.classes) - len(colormap))
+            for i in range(diff):
+                colormap.append(colormap[-1])
+        if self.samples is None:
+            raise ValueError("There are no samples - maybe you need to generate some data first")
+        if self.labels is None:
+            raise ValueError("There are no labels - maybe you need to generate some data first")
+        if axis1 > self.n_features-1 or axis2 > self.n_features-1:
+            raise ValueError("axis exceeds number of features")
+        plt.scatter([s[axis1] for s in self.samples], [s[axis2] for s in self.samples], color=colormap[self.labels])
+        if show:
+            plt.show()
+        return plt
