@@ -3,6 +3,7 @@ import random
 import numpy as np
 import scipy.stats as st
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 from scipy.stats import rv_continuous
 
 
@@ -32,6 +33,7 @@ class ClassObject:
 
 
 class DataGeneration:
+    title: str
     classes = list[ClassObject]
     n_informative_features: int
     n_uninformative_features: int
@@ -39,10 +41,16 @@ class DataGeneration:
     samples: list[list] = None
     labels: list = None
 
-    def __init__(self, n_features: int, class_objects: list[ClassObject], n_uninformative_features: int = 0):
+    def __init__(self, n_informative_features: int, class_objects: list[ClassObject], n_uninformative_features: int = 0,
+                 title: str = None):
         self.classes = class_objects
-        self.n_informative_features = n_features
+        self.n_informative_features = n_informative_features
         self.n_uninformative_features = n_uninformative_features
+
+        if title is None:
+            self.title = "DG-" + str(self.n_informative_features) + "-" + str(self.n_uninformative_features)
+        else:
+            self.title = str(title)
 
     def add_classobject(self, class_object):
         self.classes.append(class_object)
@@ -52,12 +60,11 @@ class DataGeneration:
             raise ValueError("x is required")
         if len(x) < self.n_informative_features + self.n_uninformative_features:
             raise ValueError("x has to few features/components")
-        if k > len(self.classes)-1:
+        if k > len(self.classes) - 1:
             raise ValueError("k is larger than number of classes")
 
         # slice to not consider uninformative features (if any)
         x = x[:self.n_informative_features]
-        print(x)
 
         denominator = sum([class_object.sum_pdfs(x) for class_object in self.classes])
         if denominator == 0:
@@ -71,7 +78,7 @@ class DataGeneration:
     def generate_data(self, n_examples: list[list[int]], classes=None, overwrite=True):
         if classes is None:
             classes = [i for i in range(len(self.classes))]
-        elif len(n_examples) != len(classes):
+        if len(n_examples) != len(classes):
             raise ValueError("Length on n_examples larger than number of classes to be considered")
 
         samples = [[]]
@@ -86,7 +93,8 @@ class DataGeneration:
                     samples.append(sample)
                     labels += [index for _ in range(len(sample))]
 
-        samples = [s for sample in samples for s in sample] #flatten out sample list
+        # flatten out sample list
+        samples = [s for sample in samples for s in sample]
 
         # add uninformative features
         if self.n_uninformative_features > 0:
@@ -102,16 +110,27 @@ class DataGeneration:
         if len(colormap) < len(self.classes):
             diff = abs(len(self.classes) - len(colormap))
             for i in range(diff):
-                colormap.append(colormap[-1])
+                colormap = np.append(colormap, colormap[-1])
         if self.samples is None:
             raise ValueError("There are no samples - maybe you need to generate some data first")
         if self.labels is None:
             raise ValueError("There are no labels - maybe you need to generate some data first")
-        if axis1 > self.n_informative_features + self.n_uninformative_features-1:
+        if axis1 > self.n_informative_features + self.n_uninformative_features - 1:
             raise ValueError("axis1 exceeds number of features")
-        if axis2 > self.n_informative_features + self.n_uninformative_features-1:
+        if axis2 > self.n_informative_features + self.n_uninformative_features - 1:
             raise ValueError("axis2 exceeds number of features")
         plt.scatter([s[axis1] for s in self.samples], [s[axis2] for s in self.samples], color=colormap[self.labels])
+        plt.title(self.title)
+        plt.xlabel("feature " + str(axis1))
+        plt.ylabel("feature " + str(axis2))
+
+        class_labels = [i for i in range(len(self.classes))]
+
+        legend_elements = [
+            Line2D([0], [0], marker='o', color='white', markerfacecolor=colormap[label], label=str(label))
+            for label in class_labels
+        ]
+        plt.legend(handles=legend_elements, title="Classes", loc='upper left')
         if show:
             plt.show()
         return plt
