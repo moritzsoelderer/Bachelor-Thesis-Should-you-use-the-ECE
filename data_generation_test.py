@@ -22,7 +22,7 @@ dist2_2 = st.multivariate_normal(mean=[0, 0], cov=cov2, allow_singular=True)
 
 class_object2 = dg.ClassObject([dist2_1, dist2_2])
 
-test = dg.DataGeneration(2, [class_object1, class_object2])
+test = dg.DataGeneration(2, [class_object1, class_object2], n_uninformative_features=5)
 
 n_samples_per_class_and_dist = [
     [10000, 10000],
@@ -34,7 +34,11 @@ samples, labels = test.generate_data(n_samples_per_class_and_dist)
 colormap = np.array(['orange', 'blue'])
 
 test.scatter2d(0, 1, colormap)
+test.scatter2d(1, 2, colormap)
+test.scatter2d(1, 3, colormap)
+test.scatter2d(1, 4, colormap)
 
-print("Conditional Probabilites: (X: [6,6])")
-print("class 0:", test.cond_prob([6, 6], 0, round_to=3))
-print("class 1:", test.cond_prob([6, 6], 1, round_to=3))
+x = [1, 2, 3, 4, 5, 6, 7]
+print("Conditional Probabilites: (X:", x, ")")
+print("class 0:", test.cond_prob(x, 0, round_to=3))
+print("class 1:", test.cond_prob(x, 1, round_to=3))

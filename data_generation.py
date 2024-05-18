@@ -33,14 +33,16 @@ class ClassObject:
 
 class DataGeneration:
     classes = list[ClassObject]
-    n_features: int
+    n_informative_features: int
+    n_uninformative_features: int
 
     samples: list[list] = None
     labels: list = None
 
-    def __init__(self, n_features: int, class_objects: list[ClassObject]):
+    def __init__(self, n_features: int, class_objects: list[ClassObject], n_uninformative_features: int = 0):
         self.classes = class_objects
-        self.n_features = n_features
+        self.n_informative_features = n_features
+        self.n_uninformative_features = n_uninformative_features
 
     def add_classobject(self, class_object):
         self.classes.append(class_object)
@@ -48,8 +50,15 @@ class DataGeneration:
     def cond_prob(self, x, k=0, round_to=0):
         if x is None:
             raise ValueError("x is required")
+        if len(x) < self.n_informative_features + self.n_uninformative_features:
+            raise ValueError("x has to few features/components")
         if k > len(self.classes)-1:
             raise ValueError("k is larger than number of classes")
+
+        # slice to not consider uninformative features (if any)
+        x = x[:self.n_informative_features]
+        print(x)
+
         denominator = sum([class_object.sum_pdfs(x) for class_object in self.classes])
         if denominator == 0:
             return 0
@@ -78,6 +87,10 @@ class DataGeneration:
                     labels += [index for _ in range(len(sample))]
 
         samples = [s for sample in samples for s in sample] #flatten out sample list
+
+        # add uninformative features
+        if self.n_uninformative_features > 0:
+            samples = [np.append(sample, st.uniform.rvs(size=self.n_uninformative_features)) for sample in samples]
         if overwrite:
             self.samples = samples
             self.labels = labels
@@ -94,8 +107,10 @@ class DataGeneration:
             raise ValueError("There are no samples - maybe you need to generate some data first")
         if self.labels is None:
             raise ValueError("There are no labels - maybe you need to generate some data first")
-        if axis1 > self.n_features-1 or axis2 > self.n_features-1:
-            raise ValueError("axis exceeds number of features")
+        if axis1 > self.n_informative_features + self.n_uninformative_features-1:
+            raise ValueError("axis1 exceeds number of features")
+        if axis2 > self.n_informative_features + self.n_uninformative_features-1:
+            raise ValueError("axis2 exceeds number of features")
         plt.scatter([s[axis1] for s in self.samples], [s[axis2] for s in self.samples], color=colormap[self.labels])
         if show:
             plt.show()
