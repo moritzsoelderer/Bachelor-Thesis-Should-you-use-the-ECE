@@ -35,7 +35,7 @@ class DataGeneration:
     classes = list[ClassObject]
     n_features: int
 
-    samples: list[list]
+    samples: list[list] = None
     labels: list = None
 
     def __init__(self, n_features: int, class_objects: list[ClassObject]):
@@ -59,7 +59,7 @@ class DataGeneration:
             return round(nominator / denominator, round_to)
         return nominator / denominator
 
-    def generate_data(self, n_examples: list[list[int]], classes=None, overwrite=False):
+    def generate_data(self, n_examples: list[list[int]], classes=None, overwrite=True):
         if classes is None:
             classes = [i for i in range(len(self.classes))]
         elif len(n_examples) != len(classes):
