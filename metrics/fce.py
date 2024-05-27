@@ -34,7 +34,7 @@ def fuzzy_conf(g, correct, prob_y):
     for i in range(len(correct)):
         if correct[i] == 1:
             acc_sum.append(g[i])
-            conf_sum.append(g[i] * prob_y[i])
+        conf_sum.append(g[i] * prob_y[i])
 
     return (sum(acc_sum), sum(conf_sum))
 
@@ -45,9 +45,12 @@ def fuzzy_calibration_error(y_true, y_pred, n_bins):
     prob_y = np.max(y_pred, axis=-1)
 
     mem = []
+
+    print("before fuzzy binning")
     for p in prob_y:
         mem.append(fuzzy_binning(p, bins=n_bins))
 
+    print("after fuzzy binning")
     bins = n_bins
 
     g_bin = {}
@@ -63,9 +66,15 @@ def fuzzy_calibration_error(y_true, y_pred, n_bins):
     fce_vals = []
 
     for bin_ in range(bins):
+        print("fce bin: ", bin_)
         g_bin[bin_] = [x[bin_] for x in mem]
         total_mem_g_bin[bin_] = sum(g_bin[bin_])
+
+        # print(total_mem_g_bin[bin_])
+
         acc_sum_g_bin[bin_], conf_sum_g_bin[bin_] = fuzzy_conf(g_bin[bin_], correct, prob_y)
+
+        # print(acc_sum_g_bin[bin_], conf_sum_g_bin[bin_])
 
         if total_mem_g_bin[bin_] != 0:
             acc_g_bin[bin_] = acc_sum_g_bin[bin_] / total_mem_g_bin[bin_]
