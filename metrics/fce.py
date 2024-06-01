@@ -46,11 +46,9 @@ def fuzzy_calibration_error(y_true, y_pred, n_bins):
 
     mem = []
 
-    print("before fuzzy binning")
     for p in prob_y:
         mem.append(fuzzy_binning(p, bins=n_bins))
 
-    print("after fuzzy binning")
     bins = n_bins
 
     g_bin = {}
@@ -66,7 +64,6 @@ def fuzzy_calibration_error(y_true, y_pred, n_bins):
     fce_vals = []
 
     for bin_ in range(bins):
-        print("fce bin: ", bin_)
         g_bin[bin_] = [x[bin_] for x in mem]
         total_mem_g_bin[bin_] = sum(g_bin[bin_])
 
