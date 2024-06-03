@@ -1,23 +1,12 @@
 import numpy as np
-from numpy import floating
-from numpy._typing import _32Bit
+from utilities.utils import *
 
 
-def balance_score(scores: np.ndarray, y_true: np.ndarray) -> float:
+def balance_score(scores: np.ndarray[np.float32], y_true: np.ndarray[np.int64]) -> float:
 
     # scores should be a 1d numpy array containing probabilities for the positive class (y = 1)
     # y_true should be a 1d numpy array containing the true labels (0 or 1) for each sample
-
-    if not isinstance(scores, np.ndarray):
-        raise ValueError("scores should be a numpy array")
-    if not isinstance(y_true, np.ndarray):
-        raise ValueError("y_true should be a numpy array")
-    if np.shape(scores) != np.shape(y_true):
-        raise ValueError("shape of scores and true labels do not match: ", np.shape(scores),  np.shape(y_true))
-    if not all(0 <= score <= 1 for score in scores):
-        raise ValueError("all scores must be in range [0,1]")
-    if not all(0 == label or label == 1 for label in y_true):
-        raise ValueError("all labels must be either 0 or 1")
+    check_metric_params(scores, y_true)
 
     # scoring function
     def scoring_function(p: np.float32, y: np.int64) -> float:

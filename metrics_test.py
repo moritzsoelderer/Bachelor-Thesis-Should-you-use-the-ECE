@@ -24,7 +24,7 @@ y_pred_all_wrong = np.array(
 y_pred = y_pred_all_wrong
 
 # for tce, tce_ttest and ksce, rest supports 2 dims
-y_pred_positive_class = np.array([elem[1] for elem in y_pred])
+y_pred_positive_class = np.array([elem[1] for elem in y_pred], dtype=np.float32)
 
 ksce_val = ksce(y_true, y_pred_positive_class)
 print("ksce_val: ", ksce_val)

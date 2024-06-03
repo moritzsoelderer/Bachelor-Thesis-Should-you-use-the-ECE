@@ -1,21 +1,13 @@
 import numpy as np
+from utilities.utils import *
 
 
-def expected_calibration_error(pred_prob: np.ndarray, true_labels: np.array, n_bins: int = None) -> np.float32:
+def expected_calibration_error(pred_prob: np.ndarray[np.float32], true_labels: np.ndarray[np.int64], n_bins: int = None) -> np.float32:
     # pred_prob should be an n-D array consisting of predicted probabilities for every class
     # true_labels should be a 1-D array consisting of the true class labels
     # n_bins should be an Integer
 
-    if n_bins is None:
-        raise ValueError("n_bins is None")
-    if pred_prob is None:
-        raise ValueError("pred_prob is None")
-    if true_labels is None:
-        raise ValueError("true_labels is None")
-    if len(pred_prob) != len(true_labels):
-        raise ValueError("pred_prob and true_labels must have the same length")
-    if n_bins > len(pred_prob):
-        raise Warning("n_bins is larger than the number of samples, which results into empty bins")
+    n_bins = check_binned_metric_params(pred_prob, true_labels, n_bins)
 
     # uniform binning approach with M number of bins
     bin_boundaries = np.linspace(0, 1, n_bins + 1)
