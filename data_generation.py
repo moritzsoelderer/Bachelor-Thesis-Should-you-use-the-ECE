@@ -7,16 +7,69 @@ from matplotlib.lines import Line2D
 from scipy.stats import rv_continuous
 
 
+class MixtureInformation:
+    features_before: int
+    features_before_value: float = None
+    features_after: int
+    features_after_value: float = None
+
+    def __init__(self, features_before: int = 0, features_after: int = 0,
+                 features_before_value: float = None, features_after_value: float = None):
+        self.features_before = abs(features_before)
+        self.features_after = abs(features_after)
+        if features_before_value is not None:
+            self.features_before_value = abs(features_before_value)
+        if features_after_value is not None:
+            self.features_after_value = abs(features_after_value)
+
+    def add_before(self, samples: np.ndarray):
+        n_examples = len(samples)
+        if self.features_before_value is None:
+            return np.array([np.append(st.uniform.rvs(size=n_examples), sample) for sample in samples])
+        else:
+            return np.array(
+                [np.append([self.features_before_value] * self.features_before, sample) for sample in samples])
+
+    def add_after(self, samples: np.ndarray):
+        n_examples = len(samples)
+        if self.features_before_value is None:
+            return np.array([np.append(sample, st.uniform.rvs(size=n_examples)) for sample in samples])
+        else:
+            return np.array(
+                [np.append(sample, [self.features_before_value] * self.features_before) for sample in samples])
+
+    def remove_after(self, samples: np.ndarray):
+        return np.array(samples[:len(samples) - self.features_after])
+
+    def remove_before(self, samples: np.ndarray):
+        return np.array(samples[self.features_before:])
+
+    def trim(self, samples: np.ndarray):
+        samples = self.remove_before(samples)
+        samples = self.remove_after(samples)
+        return samples
+
+    @staticmethod
+    def empty():
+        return MixtureInformation(0, 0, None, None)
+
+
 class ClassObject:
-    distributions = list[rv_continuous]
+    distributions: list[rv_continuous]
+    mixture_information: list[MixtureInformation]
     samples: list[list]
 
-    def __init__(self, distributions):
+    def __init__(self, distributions, mixture_information=None):
+        if mixture_information is None:
+            mixture_information = [MixtureInformation.empty()] * len(distributions)
+        if len(distributions) != len(mixture_information):
+            raise ValueError("distributions and mixture_information must be the same length")
         self.distributions = distributions
+        self.mixture_information = mixture_information
         self.samples = [[]] * len(distributions)
 
     def sum_pdfs(self, x):
-        return sum([dist.pdf(x) for dist in self.distributions])
+        return sum([self.distributions[i].pdf(self.mixture_information[i].trim(x)) for i in range(len(self.distributions))])
 
     def draw_samples(self, n_examples, index=None, overwrite=True):
         if index is None:
@@ -27,6 +80,8 @@ class ClassObject:
             raise ValueError("index larger than number of distributions")
         else:
             samples = self.distributions[index].rvs(n_examples)
+            samples = self.mixture_information[index].add_before(samples)
+            samples = self.mixture_information[index].add_after(samples)
             if overwrite:
                 self.samples[index] = samples
         return samples
