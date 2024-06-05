@@ -7,6 +7,10 @@ def ksce(scores, labels):
     scores = ensure_numpy(scores)
     labels = ensure_numpy(labels)
 
+    ### Added by myself so that I am not obligated to use a 1d array with positive class labels
+    scores = np.array([elem[1] for elem in scores], dtype=np.float32)
+    ###
+
     # Sort the data
     order = scores.argsort()
     scores = scores[order]

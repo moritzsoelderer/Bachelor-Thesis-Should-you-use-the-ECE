@@ -3,10 +3,13 @@ from utilities.utils import *
 
 
 def balance_score(scores: np.ndarray[np.float32], y_true: np.ndarray[np.int64]) -> float:
-
     # scores should be a 1d numpy array containing probabilities for the positive class (y = 1)
     # y_true should be a 1d numpy array containing the true labels (0 or 1) for each sample
     check_metric_params(scores, y_true)
+
+    ### Added by myself so that I am not obligated to use a 1d array with positive class labels
+    scores = np.array([elem[1] for elem in scores], dtype=np.float32)
+    ###
 
     # scoring function
     def scoring_function(p: np.float32, y: np.int64) -> float:

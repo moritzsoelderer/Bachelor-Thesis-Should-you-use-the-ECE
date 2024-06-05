@@ -7,6 +7,11 @@ from scipy.stats import binomtest, t
 
 def tce(preds, labels, siglevel=0.05, strategy='pavabc', n_min=10, n_max=1000, n_bin=10, savepath=False, ymax=None):
     assert labels.shape[0] != n_min, "The minimum bin size equals to the data size. No binning needed."
+
+    ### Added by myself so that I am not obligated to use a 1d array with positive class labels
+    preds = np.array([elem[1] for elem in preds], dtype=np.float32)
+    ###
+
     bin_preds, bin_count, bin_total, _ = calibration_summary(preds, labels, strategy, n_min=n_min, n_max=n_max, n_bin=n_bin)
 
     bin_rnum = np.zeros(len(bin_count))
@@ -24,6 +29,10 @@ def tce(preds, labels, siglevel=0.05, strategy='pavabc', n_min=10, n_max=1000, n
 
 def tce_ttest(preds, labels, siglevel=0.05, strategy='pavabc', n_min=10, n_max=1000, n_bin=10, savepath=False, ymax=None):
     assert labels.shape[0] != n_min, "The minimum bin size equals to the data size. No binning needed."
+
+    ### Added by myself so that I am not obligated to use a 1d array with positive class labels
+    preds = np.array([elem[1] for elem in preds], dtype=np.float32)
+    ###
 
     bin_preds, bin_count, bin_total, _ = calibration_summary(preds, labels, strategy, n_min=n_min, n_max=n_max, n_bin=n_bin)
 

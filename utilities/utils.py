@@ -6,7 +6,7 @@ def check_scores(scores) -> None:
         raise ValueError("scores must not be None")
     if not isinstance(scores, np.ndarray):
         raise ValueError("scores should be a numpy array")
-    if not all(0 <= score <= 1 for score in scores):
+    if not all(0 <= s <= 1 for score in scores for s in score):
         raise ValueError("all scores must be in range [0,1]")
 
 
@@ -28,7 +28,7 @@ def check_bins(n_bins) -> np.uint64:
 
 
 def check_shapes(array1: np.ndarray, array2: np.ndarray) -> None:
-    if np.shape(array1) != np.shape(array2):
+    if len(array1) != len(array2):
         raise ValueError("array shape mismatch: ", np.shape(array1), np.shape(array2))
 
 

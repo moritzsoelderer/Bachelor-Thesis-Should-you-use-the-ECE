@@ -23,11 +23,20 @@ y_pred_all_wrong = np.array(
 
 y_pred = y_pred_all_wrong
 
-# for tce, tce_ttest and ksce, rest supports 2 dims
-y_pred_positive_class = np.array([elem[1] for elem in y_pred], dtype=np.float32)
+y_true_ksce = np.array(list(filter(lambda a: a == 1, y_true)))
+y_pred_ksce = np.array([y_pred[i] for i in range(len(y_pred)) if y_true[i] == 1])
 
-ksce_val = ksce(y_true, y_pred_positive_class)
+print(len(y_true_ksce))
+print(len(y_pred_ksce))
+print(y_true_ksce)
+print(y_pred_ksce)
+
+ksce_val = ksce(y_pred_ksce, y_true_ksce)
 print("ksce_val: ", ksce_val)
+
+y_true = y_true_ksce
+y_pred = y_pred_ksce
+
 
 bins = [10]
 for bin in bins:
@@ -37,14 +46,14 @@ for bin in bins:
     ece_val = expected_calibration_error(pred_prob=y_pred, true_labels=y_true, n_bins=bin)
     print("ece_val: ", ece_val)
 
-    balance_score_val = balance_score(scores=y_pred_positive_class, y_true=y_true)
+    balance_score_val = balance_score(scores=y_pred, y_true=y_true)
     print("balance_score_val: ", balance_score_val)
 
     _, fce_val = fuzzy_calibration_error(y_true, y_pred, n_bins=bin)
     print("fce_val ", fce_val)
 
-    tce_val = tce(preds=y_pred_positive_class, labels=y_true, n_min=bin, n_max=bin, n_bin=bin, strategy="uniform")
+    tce_val = tce(preds=y_pred, labels=y_true, n_min=bin, n_max=bin, n_bin=bin, strategy="uniform")
     print("tce_val: ", tce_val)
 
-    tce_ttest_val = tce_ttest(preds=y_pred_positive_class, labels=y_true, n_min=bin, n_max=bin, n_bin=bin, strategy="uniform")
+    tce_ttest_val = tce_ttest(preds=y_pred, labels=y_true, n_min=bin, n_max=bin, n_bin=bin, strategy="uniform")
     print("tce_ttest_val: ", tce_ttest_val)
