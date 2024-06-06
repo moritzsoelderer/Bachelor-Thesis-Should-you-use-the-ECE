@@ -56,6 +56,7 @@ class MixtureInformation:
 
 class ClassObject:
     distributions: list[rv_continuous]
+    n_features: int
     mixture_information: list[MixtureInformation]
     samples: list[list]
 
@@ -64,6 +65,11 @@ class ClassObject:
             mixture_information = [MixtureInformation.empty()] * len(distributions)
         if len(distributions) != len(mixture_information):
             raise ValueError("distributions and mixture_information must be the same length")
+        n_features_list = [self.get_n_features(distributions[i], mixture_information[i]) for i in range(len(distributions))]
+        if len(set(n_features_list)) != 1:
+            raise ValueError("all distributions must have the same number of features (mixture information included)")
+        else:
+            self.n_features = n_features_list[0]
         self.distributions = distributions
         self.mixture_information = mixture_information
         self.samples = [[]] * len(distributions)
@@ -86,6 +92,11 @@ class ClassObject:
                 self.samples[index] = samples
         return samples
 
+    @staticmethod
+    def get_n_features(distribution, mixture_information):
+        return len(distribution.mean) + mixture_information.features_before + mixture_information.features_after
+
+
 
 class DataGeneration:
     title: str
@@ -96,10 +107,14 @@ class DataGeneration:
     samples: list[list] = None
     labels: list = None
 
-    def __init__(self, n_informative_features: int, class_objects: list[ClassObject], n_uninformative_features: int = 0,
+    def __init__(self, class_objects: list[ClassObject], n_uninformative_features: int = 0,
                  title: str = None):
+        n_features_list = [class_object.n_features for class_object in class_objects]
+        if len(set(n_features_list)) != 1:
+            raise ValueError("All class objects must have the same number of features")
+        else:
+            self.n_informative_features = n_features_list[0]
         self.classes = class_objects
-        self.n_informative_features = n_informative_features
         self.n_uninformative_features = n_uninformative_features
 
         if title is None:

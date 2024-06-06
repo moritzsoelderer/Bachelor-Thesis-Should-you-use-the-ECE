@@ -22,16 +22,15 @@ dist2_2 = st.multivariate_normal(mean=[0, 0], cov=cov2, allow_singular=True)
 class_object2 = dg.ClassObject([dist2_1, dist2_2], [dg.MixtureInformation.empty(), dg.MixtureInformation.empty()])
 
 dist3_1 = st.multivariate_normal(mean=[-3, 2], cov=1, allow_singular=True)
-dist3_2 = st.multivariate_normal(mean=[-5], cov=1, allow_singular=True)
+dist3_2 = st.multivariate_normal(mean=[-7], cov=1, allow_singular=True)
 
 class_object3 = dg.ClassObject([dist3_1, dist3_2],
-                               [dg.MixtureInformation.empty(), dg.MixtureInformation(1, 0, 0, 0) ]
+                               [dg.MixtureInformation.empty(), dg.MixtureInformation(1, 0, .5, 0)]
                                )
 
-test = dg.DataGeneration(
-    2, [class_object1, class_object2, class_object3],
-    n_uninformative_features=5, title="dg-test"
-)
+test = dg.DataGeneration([class_object1, class_object2, class_object3],
+                         n_uninformative_features=5, title="dg-test"
+                         )
 
 n_samples_per_class_and_dist = [
     [100, 100],
