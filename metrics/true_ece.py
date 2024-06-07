@@ -1,6 +1,6 @@
 import numpy as np
 
-from metrics.ece import expected_calibration_error
+from metrics.ece import ece
 from utilities.utils import *
 
 

@@ -1,6 +1,7 @@
 import numpy as np
 
-from metrics.ece import expected_calibration_error
+from metrics import ace
+from metrics.ece import ece
 from metrics.fce import fuzzy_calibration_error
 from metrics.ksce import ksce
 from metrics.tce import tce
@@ -43,8 +44,11 @@ for bin in bins:
     print("--------------------------------------------------------------------")
     print("BINS: ", bin)
 
-    ece_val = expected_calibration_error(pred_prob=y_pred, true_labels=y_true, n_bins=bin)
+    ece_val = ece(pred_prob=y_pred, true_labels=y_true, n_bins=bin)
     print("ece_val: ", ece_val)
+
+    ace_val = ace.ace(pred_prob=y_pred, true_labels=y_true)
+    print("ace_val: ", ace_val)
 
     balance_score_val = balance_score(scores=y_pred, y_true=y_true)
     print("balance_score_val: ", balance_score_val)
