@@ -29,7 +29,7 @@ class_object3 = dg.ClassObject([dist3_1, dist3_2],
                                )
 
 test = dg.DataGeneration([class_object1, class_object2, class_object3],
-                         n_uninformative_features=5, title="dg-test"
+                         n_uninformative_features=1
                          )
 
 n_samples_per_class_and_dist = [
@@ -40,10 +40,12 @@ n_samples_per_class_and_dist = [
 
 samples, labels = test.generate_data(n_samples_per_class_and_dist)
 
+print("sample check: ", samples)
+
 colormap = np.array(['orange', 'blue', 'red'])
 
-test.scatter2d(0, 1, colormap, show=True)
-test.scatter2d(1, 2, colormap, show=True)
+test.scatter2d(0, 1, colormap=colormap, show=True, axis1_label="test1", axis2_label="test2")
+test.scatter2d(1, 2, colormap=colormap, show=True)
 
 x = [1, 2, 3, 4, 5, 6, 7]
 print("Conditional Probabilites: (X:", x, ")")

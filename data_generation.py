@@ -23,20 +23,18 @@ class MixtureInformation:
             self.features_after_value = abs(features_after_value)
 
     def add_before(self, samples: np.ndarray):
-        n_examples = len(samples)
         if self.features_before_value is None:
-            return np.array([np.append(st.uniform.rvs(size=n_examples), sample) for sample in samples])
+            return np.array([np.append(st.uniform.rvs(size=self.features_before), sample) for sample in samples])
         else:
             return np.array(
                 [np.append([self.features_before_value] * self.features_before, sample) for sample in samples])
 
     def add_after(self, samples: np.ndarray):
-        n_examples = len(samples)
-        if self.features_before_value is None:
-            return np.array([np.append(sample, st.uniform.rvs(size=n_examples)) for sample in samples])
+        if self.features_after_value is None:
+            return np.array([np.append(sample, st.uniform.rvs(size=self.features_after)) for sample in samples])
         else:
             return np.array(
-                [np.append(sample, [self.features_before_value] * self.features_before) for sample in samples])
+                [np.append(sample, [self.features_after_value] * self.features_after) for sample in samples])
 
     def remove_after(self, samples: np.ndarray):
         return np.array(samples[:len(samples) - self.features_after])
@@ -65,7 +63,8 @@ class ClassObject:
             mixture_information = [MixtureInformation.empty()] * len(distributions)
         if len(distributions) != len(mixture_information):
             raise ValueError("distributions and mixture_information must be the same length")
-        n_features_list = [self.get_n_features(distributions[i], mixture_information[i]) for i in range(len(distributions))]
+        n_features_list = [self.get_n_features(distributions[i], mixture_information[i]) for i in
+                           range(len(distributions))]
         if len(set(n_features_list)) != 1:
             raise ValueError("all distributions must have the same number of features (mixture information included)")
         else:
@@ -75,13 +74,12 @@ class ClassObject:
         self.samples = [[]] * len(distributions)
 
     def sum_pdfs(self, x):
-        return sum([self.distributions[i].pdf(self.mixture_information[i].trim(x)) for i in range(len(self.distributions))])
+        return sum(
+            [self.distributions[i].pdf(self.mixture_information[i].trim(x)) for i in range(len(self.distributions))])
 
     def draw_samples(self, n_examples, index=None, overwrite=True):
         if index is None:
-            samples = list(map(lambda distribution: distribution.rvs(n_examples), self.distributions))
-            if overwrite:
-                self.samples = samples
+            raise ValueError("index is required")
         elif index > len(self.distributions):
             raise ValueError("index larger than number of distributions")
         else:
@@ -90,12 +88,11 @@ class ClassObject:
             samples = self.mixture_information[index].add_after(samples)
             if overwrite:
                 self.samples[index] = samples
-        return samples
+        return np.array(samples)
 
     @staticmethod
     def get_n_features(distribution, mixture_information):
         return len(distribution.mean) + mixture_information.features_before + mixture_information.features_after
-
 
 
 class DataGeneration:
@@ -165,16 +162,15 @@ class DataGeneration:
 
         # flatten out sample list
         samples = [s for sample in samples for s in sample]
-
         # add uninformative features
         if self.n_uninformative_features > 0:
             samples = [np.append(sample, st.uniform.rvs(size=self.n_uninformative_features)) for sample in samples]
         if overwrite:
             self.samples = samples
             self.labels = labels
-        return samples, labels
+        return np.array(samples), np.array(labels)
 
-    def scatter2d(self, axis1=0, axis2=1, colormap=None, show=True):
+    def scatter2d(self, axis1=0, axis2=1, axis1_label=None, axis2_label=None, colormap=None, show=True):
         if colormap is None:
             colormap = np.array(['red', 'blue'])
         if len(colormap) < len(self.classes):
@@ -191,8 +187,15 @@ class DataGeneration:
             raise ValueError("axis2 exceeds number of features")
         plt.scatter([s[axis1] for s in self.samples], [s[axis2] for s in self.samples], color=colormap[self.labels])
         plt.title(self.title)
-        plt.xlabel("feature " + str(axis1))
-        plt.ylabel("feature " + str(axis2))
+
+        if axis1_label is None:
+            axis1_label = "feature " + str(axis1)
+
+        if axis2_label is None:
+            axis2_label = "feature " + str(axis2)
+
+        plt.xlabel(axis1_label)
+        plt.ylabel(axis2_label)
 
         class_labels = [i for i in range(len(self.classes))]
 
