@@ -3,16 +3,16 @@ import numpy as np
 from metrics.ece import calibration_error
 
 
-def ace(pred_prob: np.ndarray, true_labels: np.ndarray):
+def ace(pred_prob: np.ndarray, true_labels: np.ndarray, n_ranges: np.int64):
 
-    bin_boundaries = adaptive_bin_boundaries(pred_prob)
+    bin_boundaries = adaptive_bin_boundaries(pred_prob, n_ranges)
 
     return calibration_error(pred_prob, true_labels, bin_boundaries)
 
 
-def adaptive_bin_boundaries(pred_prob: np.ndarray) -> np.ndarray:
+def adaptive_bin_boundaries(pred_prob: np.ndarray, n_ranges: np.int64) -> np.ndarray:
     confidences = np.max(pred_prob, axis=1)
-    split_arrays = np.array_split(sorted(confidences), 5)
+    split_arrays = np.array_split(sorted(confidences), n_ranges)
     bin_boundaries = [0.0]
     bin_boundaries = (bin_boundaries +
                       [round((split_arrays[i][-1] + split_arrays[i+1][0])/2.0, 2)
