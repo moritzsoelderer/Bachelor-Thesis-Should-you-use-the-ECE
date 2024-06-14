@@ -32,7 +32,7 @@ def calibration_error(pred_prob: np.ndarray, true_labels: np.ndarray, bin_bounda
     # get a boolean list of correct/false predictions
     accuracies = predicted_label == true_labels
 
-    calibration_error = np.zeros(1)
+    calibration_error = 0.0
     for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
         # determine if sample is in bin m (between bin lower & upper)
         in_bin = np.logical_and(confidences > bin_lower.item(), confidences <= bin_upper.item())
