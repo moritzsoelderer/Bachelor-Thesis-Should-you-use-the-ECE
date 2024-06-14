@@ -39,7 +39,7 @@ def fuzzy_conf(g, correct, prob_y):
     return (sum(acc_sum), sum(conf_sum))
 
 
-def fuzzy_calibration_error(y_true, y_pred, n_bins):
+def fce(y_pred, y_true, n_bins):
     pred_y = np.argmax(y_pred, axis=-1)
     correct = (pred_y == y_true).astype(np.float32)
     prob_y = np.max(y_pred, axis=-1)
@@ -87,4 +87,4 @@ def fuzzy_calibration_error(y_true, y_pred, n_bins):
 
     fce = round(float(fce_num / fce_den), 3)
 
-    return fce_vals, fce
+    return fce
