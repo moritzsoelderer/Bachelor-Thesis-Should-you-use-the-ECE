@@ -1,8 +1,6 @@
-import random
-
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats as st
-import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from scipy.stats import rv_continuous
 
@@ -145,6 +143,10 @@ class DataGeneration:
     def generate_data(self, n_examples: list[list[int]], classes=None, overwrite=True):
         if classes is None:
             classes = [i for i in range(len(self.classes))]
+        if n_examples is None:
+            raise ValueError("n_examples is required")
+        if not hasattr(n_examples, "__len__"):
+            n_examples = [[n_examples] * len(self.classes[index].distributions) for index in classes]
         if len(n_examples) != len(classes):
             raise ValueError("Length on n_examples larger than number of classes to be considered")
 
@@ -170,7 +172,7 @@ class DataGeneration:
             self.labels = labels
         return np.array(samples), np.array(labels)
 
-    def scatter2d(self, axis1=0, axis2=1, axis1_label=None, axis2_label=None, colormap=None, show=True):
+    def scatter2d(self, axis1=0, axis2=1, axis1_label=None, axis2_label=None, colormap=None, show=False, savePath=None):
         if colormap is None:
             colormap = np.array(['red', 'blue'])
         if len(colormap) < len(self.classes):
@@ -204,6 +206,8 @@ class DataGeneration:
             for label in class_labels
         ]
         plt.legend(handles=legend_elements, title="Classes", loc='upper left')
+        if savePath is not None:
+            plt.savefig(fname=savePath)
         if show:
             plt.show()
         return plt
