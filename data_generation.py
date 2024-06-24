@@ -92,6 +92,43 @@ class ClassObject:
     def get_n_features(distribution, mixture_information):
         return len(distribution.mean) + mixture_information.features_before + mixture_information.features_after
 
+    @staticmethod
+    def random(n_distributions=None, n_features=None):
+
+        if n_distributions is None:
+            n_distributions = np.random.randint(1)
+        if n_features is None:
+            n_features = np.random.randint(1)
+
+        distributions = np.array([])
+        mixture_information = np.array([])
+        for i in range(n_distributions):
+            n_informative_features = np.random.randint(1, n_features + 1)
+            n_uninformative_features = n_features - n_informative_features
+
+            mean = np.random.rand(n_informative_features) * 10
+            matrix = np.array(
+                [
+                    [np.random.rand() if i == j else 0 for i in range(n_informative_features)]
+                    for j in range(n_informative_features)
+                ])
+            cov = matrix * matrix.T
+
+            print(mean)
+            print(cov)
+
+            distribution = st.multivariate_normal(mean=mean, cov=cov)
+
+            n_uninformative_features_before = np.random.randint(0, n_uninformative_features + 1)
+            n_uninformative_features_after = n_uninformative_features - n_uninformative_features_before
+            mixture_info = MixtureInformation(features_before=n_uninformative_features_before, features_after=n_uninformative_features_after)
+
+            distributions = np.append(distributions, [distribution])
+            mixture_information = np.append(mixture_information, [mixture_info])
+
+        return ClassObject(distributions, mixture_information)
+
+
 
 class DataGeneration:
     title: str
@@ -116,6 +153,26 @@ class DataGeneration:
             self.title = "DG-" + str(self.n_informative_features) + "-" + str(self.n_uninformative_features)
         else:
             self.title = str(title)
+
+    @staticmethod
+    def random(title: str = None, n_classes: int = None, n_dists_per_class: int = None, n_informative_features: int = None, n_uninformative_features: int = None):
+
+        if n_classes is None:
+            n_classes = np.random.randint(1, 10)
+        if n_dists_per_class is None:
+            n_dists_per_class = np.random.randint(1, 10)
+        if n_informative_features is None:
+            n_informative_features = np.random.randint(1, 50)
+        if n_uninformative_features is None:
+            n_uninformative_features = np.random.randint(1, 50)
+
+        class_objects = np.array([])
+
+        for i in range(n_classes):
+            class_object = ClassObject.random(n_dists_per_class, n_informative_features)
+            class_objects = np.append(class_objects, [class_object])
+
+        return DataGeneration(class_objects, n_uninformative_features, title)
 
     def add_classobject(self, class_object):
         self.classes.append(class_object)
