@@ -14,6 +14,9 @@ def true_ece(scores, true_prob):
     check_scores(true_prob)
     check_shapes(scores, true_prob)
 
+    scores = np.max(scores, axis=-1)
+    true_prob = np.max(true_prob, axis=-1)
+
     return sum(abs(np.array(scores) - np.array(true_prob))) / len(true_prob)
 
 
