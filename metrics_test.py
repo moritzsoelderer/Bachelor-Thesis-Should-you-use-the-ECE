@@ -38,6 +38,8 @@ print("ksce_val: ", ksce_val)
 y_true = y_true_ksce
 y_pred = y_pred_ksce
 
+balance_score_val = balance_score(scores=y_pred, y_true=y_true)
+print("balance_score_val: ", balance_score_val)
 
 bins = [10]
 for bin in bins:
@@ -47,11 +49,8 @@ for bin in bins:
     ece_val = ece(pred_prob=y_pred, true_labels=y_true, n_bins=bin)
     print("ece_val: ", ece_val)
 
-    ace_val = ace.ace(pred_prob=y_pred, true_labels=y_true)
+    ace_val = ace.ace(pred_prob=y_pred, true_labels=y_true, n_ranges=bin)
     print("ace_val: ", ace_val)
-
-    balance_score_val = balance_score(scores=y_pred, y_true=y_true)
-    print("balance_score_val: ", balance_score_val)
 
     fce_val = fce(y_pred, y_true, n_bins=bin)
     print("fce_val ", fce_val)
