@@ -1,5 +1,6 @@
 import numpy as np
 
+from itertools import groupby
 from metrics.balance_score import balance_score
 from metrics.ece import ece
 from metrics.fce import fce
@@ -14,11 +15,21 @@ def true_ece(scores, true_prob):
     check_scores(true_prob)
     check_shapes(scores, true_prob)
 
-    scores = np.max(scores, axis=-1)
-    true_prob = np.max(true_prob, axis=-1)
+    scores = np.array(scores[:, 1])
+    true_prob = np.array(true_prob[:, 1])
 
-    return sum(abs(np.array(scores) - np.array(true_prob))) / len(true_prob)
+    scores_prob_zip = np.array(sorted(zip(scores, true_prob), key=lambda x: x[1]))
+    grouped_scores_prob_zip = [list(group) for _, group in groupby(scores_prob_zip, key=lambda x: x[0])]
+    true_ece_vals_per_pred_prob = [abs(sum([x[1] for x in group]) / len(group) - group[0][0]) for group in grouped_scores_prob_zip]
+    return sum(true_ece_vals_per_pred_prob)/len(grouped_scores_prob_zip)
 
+
+#TEST
+
+test_scores = np.array([[0.2, 0.8], [0.2, 0.8], [0.2, 0.8]])
+test_true_prob = np.array([[0.2, 0.8], [0.1, 0.9], [0.3, 0.7]])
+
+print(round(true_ece(test_scores, test_true_prob), 3))
 
 def calibration_error_summary(scores, labels, n_bins: np.ndarray, round_to=4):
     check_metric_params(scores, labels)
