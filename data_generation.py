@@ -96,9 +96,9 @@ class ClassObject:
     def random(n_distributions=None, n_features=None):
 
         if n_distributions is None:
-            n_distributions = np.random.randint(1)
+            n_distributions = np.random.randint(1, 10)
         if n_features is None:
-            n_features = np.random.randint(1)
+            n_features = np.random.randint(1, 10)
 
         distributions = np.array([])
         mixture_information = np.array([])
@@ -113,9 +113,6 @@ class ClassObject:
                     for j in range(n_informative_features)
                 ])
             cov = matrix * matrix.T
-
-            print(mean)
-            print(cov)
 
             distribution = st.multivariate_normal(mean=mean, cov=cov)
 
