@@ -1,5 +1,3 @@
-from itertools import groupby
-
 import pandas as pd
 
 from metrics.ace import ace
@@ -12,23 +10,37 @@ from utilities.utils import *
 
 
 def true_ece(scores, true_prob):
+    # Check input validity (assuming these functions are already defined)
     check_scores(scores)
     check_scores(true_prob)
     check_shapes(scores, true_prob)
 
+    # Convert inputs to numpy arrays and extract the relevant columns
     scores = np.array(scores[:, 1])
     true_prob = np.array(true_prob[:, 1])
 
-    scores_prob_zip = np.array(sorted(zip(scores, true_prob), key=lambda x: x[1]))
-    grouped_scores_prob_zip = [list(group) for _, group in groupby(scores_prob_zip, key=lambda x: x[0])]
-    true_ece_vals_per_pred_prob = [abs(sum([x[1] for x in group]) / len(group) - group[0][0]) for group in grouped_scores_prob_zip]
-    return sum(true_ece_vals_per_pred_prob)/len(grouped_scores_prob_zip)
+    # Sort scores and true_prob by scores
+    sorted_indices = np.argsort(scores)
+    scores = scores[sorted_indices]
+    true_prob = true_prob[sorted_indices]
 
+    # Find unique scores and their corresponding indices
+    unique_scores, inverse_indices = np.unique(scores, return_inverse=True)
+
+    # Compute the mean true probability for each unique score
+    sum_true_prob = np.bincount(inverse_indices, weights=true_prob)
+    count_per_score = np.bincount(inverse_indices)
+    mean_true_prob = sum_true_prob / count_per_score
+
+    # Calculate the true ECE values per predicted probability
+    true_ece_vals_per_pred_prob = np.abs(mean_true_prob - unique_scores)
+
+    # Compute the final true ECE value
+    return np.mean(true_ece_vals_per_pred_prob)
 
 #TEST
-
-test_scores = np.array([[0.2, 0.8], [0.2, 0.8], [0.2, 0.8]])
-test_true_prob = np.array([[0.2, 0.8], [0.1, 0.9], [0.3, 0.7]])
+test_scores = np.array([[0.2, 0.8], [0.6, 0.4], [0.2, 0.8]])
+test_true_prob = np.array([[0.2, 0.8], [0.5, 0.5], [1, 0]])
 
 print(round(true_ece(test_scores, test_true_prob), 3))
 
@@ -44,14 +56,14 @@ def calibration_error_summary(scores, labels, n_bins: np.ndarray, round_to=4):
     for n_bin in n_bins:
         n_bin = check_bins(n_bin)
 
-        ece_vals = np.append(ece_vals, round(ece(scores, labels, n_bin), round_to))
-        fce_vals = np.append(fce_vals, round(fce(scores, labels, n_bin), round_to))
-        tce_vals_uniform = np.append(tce_vals_uniform, round(tce(scores, labels, n_bin=n_bin, strategy="uniform"), round_to))
-        tce_vals_pavabc = np.append(tce_vals_pavabc, round(tce(scores, labels, n_bin=n_bin, strategy="pavabc"), round_to))
-        ace_vals = np.append(ace_vals, round(ace(scores, labels, n_ranges=n_bin), round_to))
+        ece_vals = np.append(ece_vals, np.round(ece(scores, labels, n_bin), round_to))
+        fce_vals = np.append(fce_vals, np.round(fce(scores, labels, n_bin), round_to))
+        tce_vals_uniform = np.append(tce_vals_uniform, np.round(tce(scores, labels, n_bin=n_bin, strategy="uniform"), round_to))
+        tce_vals_pavabc = np.append(tce_vals_pavabc, np.round(tce(scores, labels, n_bin=n_bin, strategy="pavabc"), round_to))
+        ace_vals = np.append(ace_vals, np.round(ace(scores, labels, n_ranges=n_bin), round_to))
 
-    ksce_val = round(ksce(scores, labels), round_to)
-    balance_score_val = round(balance_score(scores, labels), round_to)
+    ksce_val = np.round(ksce(scores, labels), round_to)
+    balance_score_val = np.round(balance_score(scores, labels), round_to)
 
     return np.array([ece_vals, fce_vals, tce_vals_uniform, tce_vals_pavabc, ace_vals]),  balance_score_val, ksce_val
 
