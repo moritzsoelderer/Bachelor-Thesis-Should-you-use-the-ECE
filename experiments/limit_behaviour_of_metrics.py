@@ -79,10 +79,10 @@ for i in range(n_datasets):
     dataset.scatter2d(show=True)
 
 # normalize values
-true_ece_val = round(true_ece_val / n_datasets, 3)
-balance_score_val = round(balance_score_val / n_datasets, 3)
-ksce_val = round(ksce_val / n_datasets, 3)
-ce_matrix = map(lambda x: round(x / n_datasets, 3), ce_matrix)
+true_ece_val = np.round(true_ece_val / n_datasets, 3)
+balance_score_val = np.round(balance_score_val / n_datasets, 3)
+ksce_val = np.round(ksce_val / n_datasets, 3)
+ce_matrix = np.round(np.divide(ce_matrix, n_datasets), 3)
 
 # average metadata
 averaged_metadata = np.sum(iteration_metadata, axis=0) / len(iteration_metadata)
