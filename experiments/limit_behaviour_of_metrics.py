@@ -16,13 +16,20 @@ ksce_val = 0
 balance_score_val = 0
 true_ece_val = 0
 
+iteration_metadata = np.zeros((n_datasets, 5), dtype=np.int64)
+
 for i in range(n_datasets):
+
     # initialize parameters randomly
     n_classes = 2
     n_dists_per_class = np.random.randint(1, 10)
     n_uninformative_features = np.random.randint(1, 5)
     n_informative_features = np.random.randint(1, 5)
     n_examples_per_class_per_dist = np.random.randint(1000, 2000)  # change to realistic numbers
+
+    # store metadata of current iteration
+    iteration_metadata[i] = [n_classes, n_dists_per_class, n_informative_features,
+                             n_uninformative_features, n_examples_per_class_per_dist]
 
     # generate and prepare data
     dataset = dg.DataGeneration.random(n_classes=n_classes, n_dists_per_class=n_dists_per_class,
@@ -54,7 +61,8 @@ for i in range(n_datasets):
     p_test_true = np.array([[dataset.cond_prob(x, k=0), dataset.cond_prob(x, k=1)] for x in X_test])
 
     # print dataframe (for debugging)
-    # not_binned_df, binned_df = true_ece.print_calibration_error_summary_table(predictions, y_test, p_test_true, n_bins)
+    # not_binned_df, binned_df = true_ece.print_calibration_error_summary_table(predictions, y_test,
+    # p_test_true, n_bins)
     # print(not_binned_df)
     # print(binned_df)
 
@@ -71,12 +79,22 @@ for i in range(n_datasets):
     dataset.scatter2d(show=True)
 
 # normalize values
-true_ece_val /= n_datasets
-balance_score_val /= n_datasets
-ksce_val /= n_datasets
-ce_matrix /= n_datasets
+true_ece_val = round(true_ece_val / n_datasets, 3)
+balance_score_val = round(balance_score_val / n_datasets, 3)
+ksce_val = round(ksce_val / n_datasets, 3)
+ce_matrix = map(lambda x: round(x / n_datasets, 3), ce_matrix)
 
+# average metadata
+averaged_metadata = np.sum(iteration_metadata, axis=0) / len(iteration_metadata)
+
+print("metrics (avg): ")
 print(true_ece_val)
 print(balance_score_val)
 print(ksce_val)
 print(ce_matrix)
+
+print("iteration metadata: ")
+print(iteration_metadata)
+
+print("averaged metadata: ")
+print(averaged_metadata)
