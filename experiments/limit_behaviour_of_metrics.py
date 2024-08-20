@@ -1,14 +1,18 @@
+import time
+from datetime import datetime
 import numpy as np
 from sklearn.model_selection import train_test_split
-
-import data_generation as dg
 import tensorflow as tf
 
+import data_generation as dg
 from metrics import true_ece
 
-n_datasets = 2
+# tracking execution time
+start_time = time.time()
 
-# calibration error metric variables
+n_datasets = 100
+
+# calibration error metric variable
 n_bins = np.array([10, 20, 50, 100, 200])
 n_binned_metrics = len(["ece", "fce", "tce uniform", "tce pavabc", "ace"])
 ce_matrix = np.zeros((n_binned_metrics, len(n_bins)), dtype=np.float32)
@@ -40,10 +44,10 @@ for i in range(n_datasets):
     y_train = tf.keras.utils.to_categorical(y_train)
     y_test = tf.keras.utils.to_categorical(y_test)
 
-    print("Number of training examples: ", len(X_train))
-    print("Number of test examples: ", len(X_test))
-    print("Number of training labels: ", len(y_train))
-    print("Number of test labels: ", len(y_test))
+    # print("Number of training examples: ", len(X_train))
+    # print("Number of test examples: ", len(X_test))
+    # print("Number of training labels: ", len(y_train))
+    # print("Number of test labels: ", len(y_test))
 
     # train model
     model = tf.keras.Sequential()
@@ -76,7 +80,7 @@ for i in range(n_datasets):
     ce_matrix += next_ce_matrix
 
     # scatter dataset (for debugging)
-    dataset.scatter2d(show=True)
+    # dataset.scatter2d(show=True)
 
 # normalize values
 true_ece_val = np.round(true_ece_val / n_datasets, 3)
@@ -87,6 +91,32 @@ ce_matrix = np.round(np.divide(ce_matrix, n_datasets), 3)
 # average metadata
 averaged_metadata = np.sum(iteration_metadata, axis=0) / len(iteration_metadata)
 
+# write values to file
+file = open("limit_behaviour_summary.txt", "a")
+file.write("Limit Behaviour Execution at: " + str(datetime.now()) + "\n")
+file.write("\n")
+file.write("Execution Metadata:\n")
+file.write("Number of datasets/iterations: " + str(n_datasets) + "\n")
+file.write("Avg. number of classes: " + str(averaged_metadata[0]) + "\n")
+file.write("Avg. number of prob. dist. per class: " + str(averaged_metadata[1]) + "\n")
+file.write("Avg. number of informative features: " + str(averaged_metadata[2]) + "\n")
+file.write("Avg. number of uninformative features: " + str(averaged_metadata[3]) + "\n")
+file.write("Avg. number of examples per dist. and class: " + str(averaged_metadata[4]) + "\n")
+file.write("\n")
+file.write("AVG Metric Values:\n")
+file.write("True ECE: " + str(true_ece_val) + "\n")
+file.write("Balance Score: " + str(balance_score_val) + "\n")
+file.write("KSCE: " + str(ksce_val) + "\n")
+file.write("ECE: " + str(ce_matrix[0]) + "\n")
+file.write("FCE: " + str(ce_matrix[1]) + "\n")
+file.write("TCE uniform " + str(ce_matrix[2]) + "\n")
+file.write("TCE PAVA-BC " + str(ce_matrix[3]) + "\n")
+file.write("ACE " + str(ce_matrix[4]) + "\n")
+file.write("-------------------------------------------------------\n")
+file.write("\n")
+file.close()
+
+# print values
 print("metrics (avg): ")
 print(true_ece_val)
 print(balance_score_val)
@@ -98,3 +128,6 @@ print(iteration_metadata)
 
 print("averaged metadata: ")
 print(averaged_metadata)
+
+# print execution time
+print("--- %s seconds ---" % (time.time() - start_time))
