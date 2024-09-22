@@ -42,27 +42,18 @@ ece_vals = []
 ace_vals = []
 ksce_vals = []
 tce_vals = []
-
-y_true_ksce = np.array(list(filter(lambda a: a == 1, y_true)))
-y_pred_ksce_all_correct = np.array([y_pred_all_correct[i] for i in range(len(y_pred_all_correct)) if y_true[i] == 1])
-y_pred_ksce_all_wrong = np.array([y_pred_all_wrong[i] for i in range(len(y_pred_all_wrong)) if y_true[i] == 1])
-
-y_pred_ksce_all_wrong = y_pred_all_wrong
-y_pred_ksce_all_correct = y_pred_all_correct
-y_true_ksce = y_true
-
-n_samples_ksce = len(y_pred_ksce_all_correct) + len(y_pred_ksce_all_wrong)
-n_samples_ksce = n_samples
+fce_vals = []
 
 for percentage in percentages:
     y_pred_percentage_correct = np.append(
-        y_pred_ksce_all_correct[:int(n_samples_ksce*(1-percentage))], y_pred_ksce_all_wrong[int(n_samples_ksce*(1-percentage)):], axis=0
+        y_pred_all_correct[:int(n_samples*(1-percentage))], y_pred_all_wrong[int(n_samples*(1-percentage)):], axis=0
     )
 
-    ece_vals = np.append(ece_vals, [ece(y_pred_percentage_correct, y_true_ksce, 10)])
-    ace_vals = np.append(ace_vals, [ace(y_pred_percentage_correct, y_true_ksce, 10)])
-    ksce_vals = np.append(ksce_vals, [ksce(y_pred_percentage_correct, y_true_ksce)])
-    tce_vals = np.append(tce_vals, [tce(y_pred_percentage_correct, y_true_ksce)])
+    ece_vals = np.append(ece_vals, [ece(y_pred_percentage_correct, y_true, 10)])
+    ace_vals = np.append(ace_vals, [ace(y_pred_percentage_correct, y_true, 10)])
+    ksce_vals = np.append(ksce_vals, [ksce(y_pred_percentage_correct, y_true)])
+    tce_vals = np.append(tce_vals, [tce(y_pred_percentage_correct, y_true)])
+    fce_vals = np.append(fce_vals, [fce(y_pred_percentage_correct, y_true, 10)])
 
 
 plt.scatter(percentages, ece_vals)
@@ -88,5 +79,11 @@ plt.xlabel("percentage of incorrect predictions")
 plt.ylabel("TCE")
 plt.show()
 print("TCE values: ", tce_vals)
+
+plt.scatter(percentages, fce_vals)
+plt.xlabel("percentage of incorrect predictions")
+plt.ylabel("FCE")
+plt.show()
+print("FCE values: ", fce_vals)
 
 
