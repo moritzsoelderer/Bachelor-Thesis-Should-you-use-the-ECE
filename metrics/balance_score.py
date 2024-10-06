@@ -2,32 +2,43 @@ import numpy as np
 from utilities.utils import *
 
 
-def balance_score(scores: np.ndarray[np.float32], y_true: np.ndarray[np.int64]) -> float:
-    # scores should be a 1d numpy array containing probabilities for the positive class (y = 1)
-    # y_true should be a 1d numpy array containing the true labels (0 or 1) for each sample
+def balance_score(scores: np.ndarray, y_true: np.ndarray) -> float:
+    # Validate input
     check_metric_params(scores, y_true)
 
-    ### Added by myself so that I am not obligated to use a 1d array with positive class labels
-    scores = np.array([elem[1] for elem in scores], dtype=np.float32)
-    ###
+    # Ensure scores is a 2D array and extract probabilities for the positive class
+    scores = scores[:, 1].astype(np.float32)
 
-    # scoring function
-    def scoring_function(p: np.float32, y: np.int64) -> float:
-        # p is the probability for the positive class of one sample
-        # y is the true label of that sample
+    # Calculate scoring function using vectorized operations
+    p = scores
+    y = y_true.astype(np.int64)
 
-        if y == 1:
-            if p < .5:
-                return -1.0 + p
-            else:
-                return 1.0 - p
-        if y == 0:
-            if p < .5:
-                return p
-            else:
-                return -p
+    # Initialize an array for the scores
+    balance_scores = np.zeros_like(p)
 
-    n_samples = len(scores)
+    # Positive class scoring
+    balance_scores[y == 1] = np.where(p[y == 1] < 0.5, -1.0 + p[y == 1], 1.0 - p[y == 1])
 
-    return (1/n_samples) * sum([scoring_function(scores[i], y_true[i]) for i in range(n_samples)])
+    # Negative class scoring
+    balance_scores[y == 0] = np.where(p[y == 0] < 0.5, p[y == 0], -p[y == 0])
+
+    # Calculate the average score
+    return np.mean(balance_scores)
+
+
+if __name__ == '__main__':
+    pred_prob = np.array([[0.1, 0.9],
+         [0.2, 0.8],
+         [0.3, 0.7],
+         [0.4, 0.6],
+         [0.5, 0.5],
+         [1., 0.],
+         [0.7, 0.3],
+         [0.6, 0.4]])
+    true_labels = np.array([0, 1, 0, 1, 1, 0, 0, 0])
+
+    balance_score_val = balance_score(pred_prob, true_labels)
+    print(balance_score_val)
+
+    #0.02500000223517418
 
