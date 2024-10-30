@@ -30,7 +30,7 @@ def main():
 
     # plotting some of the conditional probabilities resulting from mean deviation of the underlying distribution (can be deleted later on)
     util.plot_pred_prob_dists(np.arange(initial_value - np.pi, initial_value + np.pi, 2), samples, calculate_probabilities, "Sine Shift")
-    util.plot_true_prob_reliability_diagram(np.arange(initial_value - np.pi, initial_value + np.pi + 1, np.pi/3), samples, true_prob, true_labels, calculate_probabilities, "Sine Shift")
+    util.plot_true_prob_reliability_diagrams(np.arange(initial_value - np.pi, initial_value + np.pi + 1, np.pi / 3), samples, true_prob, true_labels, calculate_probabilities, "Sine Shift")
 
     true_ece_vals = np.array([], dtype=np.float64)
     ece_vals = np.array([], dtype=np.float64)

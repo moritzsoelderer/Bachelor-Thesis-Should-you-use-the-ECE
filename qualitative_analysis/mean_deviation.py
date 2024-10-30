@@ -23,7 +23,7 @@ def main():
     true_labels = np.array(list(map(lambda x: 1 if random.random() < x[1] else 0, true_prob)))
 
     util.plot_pred_prob_dists(np.arange(mean - 4, mean + 4, 2), samples, calculate_probabilities, "mean")
-    util.plot_true_prob_reliability_diagram(np.arange(mean - 4, mean + 4, 1), samples, true_prob, true_labels, calculate_probabilities, "Mean")
+    util.plot_true_prob_reliability_diagrams(np.arange(mean - 4, mean + 4, 1), samples, true_prob, true_labels, calculate_probabilities, "Mean")
 
     true_ece_vals, ece_vals, balance_score_vals, fce_vals, tce_vals, ksce_vals, ace_vals = util.calculate_metrics(
         mean + mean_deviations, true_prob,

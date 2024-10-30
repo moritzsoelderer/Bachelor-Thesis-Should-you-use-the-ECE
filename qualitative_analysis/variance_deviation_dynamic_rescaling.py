@@ -45,9 +45,9 @@ def main():
                                    variance + max_positive_variance_deviation, 1), samples,
                               calculate_probabilities, "Variance")
     # plotting some of the true probability reliability diagrams
-    util.plot_true_prob_reliability_diagram(np.arange(variance + max_negative_variance_deviation,
-                                                 variance + max_positive_variance_deviation, 1), samples, true_prob,
-                                       true_labels, calculate_probabilities, "Variance")
+    util.plot_true_prob_reliability_diagrams(np.arange(variance + max_negative_variance_deviation,
+                                                       variance + max_positive_variance_deviation, 1), samples, true_prob,
+                                             true_labels, calculate_probabilities, "Variance")
 
     true_ece_vals = np.array([], dtype=np.float64)
     ece_vals = np.array([], dtype=np.float64)

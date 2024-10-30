@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import stats
 
 from metrics.ace import ace
 from metrics.balance_score import balance_score
@@ -24,7 +25,7 @@ def plot_pred_prob_dists(steps: np.array, samples: np.ndarray, calcProbs: callab
     plt.show()
 
 
-def plot_true_prob_reliability_diagram(steps: np.array, samples: np.ndarray, true_prob: np.ndarray, true_labels: np.array, calcProbs: callable,title: str = ""):
+def plot_true_prob_reliability_diagrams(steps: np.array, samples: np.ndarray, true_prob: np.ndarray, true_labels: np.array, calcProbs: callable, title: str = ""):
     print("Plotting True Probability Reliability Diagram...")
 
     for step in steps:
@@ -33,17 +34,38 @@ def plot_true_prob_reliability_diagram(steps: np.array, samples: np.ndarray, tru
         # plotting predicted probabilities against true probabilities
         colors = ['#111111', '#FF5733']
         class_colors = [colors[label] for label in true_labels]
-        plt.scatter(pred_prob[:, 1], true_prob[:, 1], c=class_colors, s=0.9)
+        plt.scatter(true_prob[:, 1], pred_prob[:, 1], c=class_colors, s=0.9)
 
         unique_labels = np.unique(true_labels)
         handles = [plt.Line2D([0], [0], marker='o', color='w', label='Class ' + str(label),
                               markerfacecolor=colors[label], markersize=10) for label in unique_labels]
         # Plotting the scatter plot
-        plt.xlabel("Predicted Probabilities")
-        plt.ylabel("True Probabilities")
+        plt.ylabel("Predicted Probabilities")
+        plt.xlabel("True Probabilities")
+        plt.xlim(0, 1)
+        plt.ylim(0, 1)
         plt.title("Reliability Diagram - " + title + " " + str(step))
         plt.legend(handles=handles, title="True Labels")
         plt.show()
+
+
+def plot_true_prob_reliability_diagram(true_prob, pred_prob, true_labels, title="Reliability Diagram"):
+    colors = ['#111111', '#FF5733']
+    class_colors = [colors[label] for label in true_labels]
+    plt.scatter(true_prob[:, 1], pred_prob[:, 1], c=class_colors, s=0.9)
+
+    unique_labels = np.unique(true_labels)
+    handles = [plt.Line2D([0], [0], marker='o', color='w', label='Class ' + str(label),
+                          markerfacecolor=colors[label], markersize=10) for label in unique_labels]
+    # Plotting the scatter plot
+    plt.ylabel("Predicted Probabilities")
+    plt.xlabel("True Probabilities")
+    plt.xlim(0, 1)
+    plt.ylim(0, 1)
+    plt.title(title)
+    plt.legend(handles=handles, title="True Labels")
+    plt.show()
+
 
 def calculate_metrics(steps, true_prob, true_labels, samples, calcProbs, log="Step"):
     true_ece_vals = np.array([], dtype=np.float64)
@@ -85,6 +107,14 @@ def calculate_metrics(steps, true_prob, true_labels, samples, calcProbs, log="St
         # calculating ace vals
         ace_val = ace(pred_prob, true_labels, 15)
         ace_vals = np.append(ace_vals, [ace_val])
+
+        print("True ECE: ", true_ece_val)
+        print("ECE: ", ece_val)
+        print("Balance Score: ", balance_score_val)
+        print("FCE: ", fce_val)
+        print("TCE: ", tce_val)
+        print("KSCE: ", ksce_val)
+        print("ACE: ", ace_val)
 
     return true_ece_vals, ece_vals, balance_score_vals, fce_vals, tce_vals, ksce_vals, ace_vals
 
@@ -134,3 +164,101 @@ def plot_metrics(initial, steps, true_prob, true_labels, true_ece_vals, ece_vals
     plt.legend(loc='upper left', bbox_to_anchor=(1, 1))  # Position outside the top-right corner
     plt.tight_layout()  # Adjust layout to prevent clipping
     plt.show()
+
+
+def svm1_probs(samples, step):
+    prob_dist = stats.norm(loc=0, scale=1)
+    noise_dist = stats.norm(loc=0, scale=step)
+    pdf_values = prob_dist.pdf(samples) * np.sqrt(2 * np.pi)
+    noise = noise_dist.rvs(size=samples.shape[0]) * ((pdf_values + 0.1) * (1 - pdf_values + 0.1)) ** 1.5 * 10
+    noisy_pdf_values = pdf_values
+    noisy_pdf_values = np.clip(noisy_pdf_values, 0, 1)
+    sine_transformatted_pdf_values = (1.0 / 2.0 ** 1.1) * (np.sin(noisy_pdf_values * np.pi - 1.5) + 1) ** 1.1
+    sine_transformatted_pdf_values = sine_transformatted_pdf_values * 0.8 + 0.1 + noise
+    if step == 0:
+        sine_transformatted_pdf_values = noisy_pdf_values
+    prob = np.column_stack((1 - sine_transformatted_pdf_values, sine_transformatted_pdf_values))
+    print("avg noise ", np.average(np.abs(noise)))
+    return prob
+
+
+def svm2_probs(samples, step):
+    prob_dist = stats.norm(loc=0, scale=1)
+    noise_dist = stats.norm(loc=0, scale=step)
+    pdf_values = prob_dist.pdf(samples) * np.sqrt(2 * np.pi)
+    noise = noise_dist.rvs(size=samples.shape[0]) * ((pdf_values + 0.1) * (1 - pdf_values + 0.1)) ** 1.5 * 10
+    noisy_pdf_values = pdf_values
+    noisy_pdf_values = np.clip(noisy_pdf_values, 0, 1)
+    sine_transformatted_pdf_values =  (1.0 / 2.0 ** 1.1) * (np.sin(noisy_pdf_values * np.pi - 1.5) + 1) ** 1.1
+    sine_transformatted_pdf_values = sine_transformatted_pdf_values * 0.8 + 0.1 + noise
+    if step == 0:
+        sine_transformatted_pdf_values = noisy_pdf_values
+    sine_transformatted_pdf_values = np.clip(sine_transformatted_pdf_values, 0, 1.25) * 0.8
+    prob = np.column_stack((1 - sine_transformatted_pdf_values, sine_transformatted_pdf_values))
+    print("avg noise ", np.average(np.abs(noise)))
+    return prob
+
+
+def randomforest1_probs(samples, step):
+    prob_dist = stats.norm(loc=0, scale=1)
+    noise_dist = stats.norm(loc=0, scale=step)
+
+    pdf_values = prob_dist.pdf(samples) * np.sqrt(2 * np.pi)
+    noise = noise_dist.rvs(size=samples.shape[0]) * ((pdf_values + 0.05) * (1 - pdf_values + 0.05)) ** 1.5 * 10
+
+    noisy_pdf_values = pdf_values + noise
+    noisy_pdf_values = np.clip(noisy_pdf_values, 0, 1)
+
+    prob = np.column_stack((1 - noisy_pdf_values, noisy_pdf_values))
+    print("avg noise ", np.average(np.abs(noise)))
+    return prob
+
+
+def randomforest2_probs(samples, step):
+    prob_dist = stats.norm(loc=0, scale=1)
+    noise_dist = stats.norm(loc=0, scale=step)
+
+    pdf_values = prob_dist.pdf(samples) * np.sqrt(2 * np.pi)
+    noise = noise_dist.rvs(size=samples.shape[0]) * ((pdf_values + 0.05) * (1 - pdf_values + 0.05)) ** 1.5 * 10
+
+    noisy_pdf_values = pdf_values + noise
+    noisy_pdf_values = np.clip(noisy_pdf_values, 0, 1.25) * 0.8
+
+    prob = np.column_stack((1 - noisy_pdf_values, noisy_pdf_values))
+    print("avg noise ", np.average(np.abs(noise)))
+    return prob
+
+
+def logisticregression1_probs(samples, step):
+    prob_dist = stats.norm(loc=0, scale=1)
+    noise_dist = stats.norm(loc=0, scale=step)
+
+    pdf_values = prob_dist.pdf(samples) * np.sqrt(2 * np.pi)
+    noise = noise_dist.rvs(size=samples.shape[0]) * 4 * np.abs(pdf_values - 0.5)
+
+    noisy_pdf_values = pdf_values + noise
+    noisy_pdf_values = np.clip(noisy_pdf_values, 0, 1)
+
+    prob = np.column_stack((1 - noisy_pdf_values, noisy_pdf_values))
+    print("avg noise ", np.average(np.abs(noise)))
+    return prob
+
+
+def logisticregression2_probs(samples, step):
+    prob_dist = stats.norm(loc=0, scale=1)
+    noise_dist = stats.norm(loc=0, scale=step)
+
+    pdf_values = prob_dist.pdf(samples) * np.sqrt(2 * np.pi)
+    noise = np.abs(noise_dist.rvs(size=samples.shape[0])) * ((pdf_values + 0.1) * (1 - pdf_values + 0.1)) ** 1.5 * 10
+
+    noisy_pdf_values = pdf_values
+    noisy_pdf_values = np.clip(noisy_pdf_values, 0, 1)
+
+    polynomial_transformatted_pdf_values = 2 * (1.1 * noisy_pdf_values - 0.36) ** 3 + 0.2
+    polynomial_transformatted_pdf_values = polynomial_transformatted_pdf_values + noise
+    if step == 0:
+        polynomial_transformatted_pdf_values = noisy_pdf_values
+    sigmoid_transformatted_pdf_values = np.clip(polynomial_transformatted_pdf_values, 0, 1) * 0.8
+    prob = np.column_stack((1 - sigmoid_transformatted_pdf_values, sigmoid_transformatted_pdf_values))
+    print("avg noise ", np.average(np.abs(noise)))
+    return prob
