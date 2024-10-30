@@ -38,11 +38,6 @@ def true_ece(scores, true_prob):
     # Compute the final true ECE value
     return np.mean(true_ece_vals_per_pred_prob)
 
-#TEST
-test_scores = np.array([[0.2, 0.8], [0.6, 0.4], [0.2, 0.8]])
-test_true_prob = np.array([[0.2, 0.8], [0.5, 0.5], [1, 0]])
-
-print(round(true_ece(test_scores, test_true_prob), 3))
 
 def calibration_error_summary(scores, labels, n_bins: np.ndarray, round_to=4):
     check_metric_params(scores, labels)
