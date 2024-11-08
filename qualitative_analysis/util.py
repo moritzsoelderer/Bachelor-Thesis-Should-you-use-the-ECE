@@ -262,3 +262,21 @@ def logisticregression2_probs(samples, step):
     prob = np.column_stack((1 - sigmoid_transformatted_pdf_values, sigmoid_transformatted_pdf_values))
     print("avg noise ", np.average(np.abs(noise)))
     return prob
+
+def svm_interpolated_probs(samples, step):
+    prob_dist = stats.norm(loc=0, scale=1)
+    noise_dist = stats.norm(loc=0, scale=0.015)
+    pdf_values = prob_dist.pdf(samples) * np.sqrt(2 * np.pi)
+
+    transformatted_pdf_values = 1 / (1 + np.exp(- step * (pdf_values - 0.5)))
+
+    noise = noise_dist.rvs(size=samples.shape[0]) * ((transformatted_pdf_values + 0.1) * (1 - transformatted_pdf_values + 0.1)) ** 1.5 * 10
+    noisy_pdf_values = transformatted_pdf_values + noise
+    noisy_pdf_values = np.clip(noisy_pdf_values, 0, 1)
+
+    if step == 3:
+        noisy_pdf_values = np.clip(pdf_values + noise, 0, 1)
+
+    prob = np.column_stack((1 - noisy_pdf_values, noisy_pdf_values))
+    print("avg noise ", np.average(np.abs(noise)))
+    return prob
