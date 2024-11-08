@@ -241,8 +241,6 @@ class DataGeneration:
             raise ValueError("axis1 exceeds number of features")
         if axis2 > self.n_informative_features + self.n_uninformative_features - 1:
             raise ValueError("axis2 exceeds number of features")
-        plt.scatter([s[axis1] for s in self.samples], [s[axis2] for s in self.samples], color=colormap[self.labels])
-        plt.title(self.title)
 
         if axis1_label is None:
             axis1_label = "feature " + str(axis1)
@@ -250,8 +248,12 @@ class DataGeneration:
         if axis2_label is None:
             axis2_label = "feature " + str(axis2)
 
-        plt.xlabel(axis1_label)
-        plt.ylabel(axis2_label)
+        fig, ax = plt.subplots(figsize=(10, 8), dpi=150)
+        ax.scatter([s[axis1] for s in self.samples], [s[axis2] for s in self.samples], color=colormap[self.labels], s=0.9)
+        plt.title(self.title, fontsize=14, fontweight='bold')
+
+        plt.xlabel(axis1_label, fontsize=11)
+        plt.ylabel(axis2_label, fontsize=11)
 
         class_labels = [i for i in range(len(self.classes))]
 
