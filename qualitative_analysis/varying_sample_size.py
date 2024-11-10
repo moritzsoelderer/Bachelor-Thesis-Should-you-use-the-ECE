@@ -1,10 +1,12 @@
+from datetime import datetime
+
 import numpy as np
 import scipy.stats as st
+import tensorflow as tf
 from matplotlib import pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
-import tensorflow as tf
 
 import data_generation as dg
 from metrics.ace import ace
@@ -49,7 +51,7 @@ def predict_random_forest(X, y):
 
 # Declare Metavariables #
 iteration_counter = 20
-subsample_sizes = [100, 1000, 5000, 10000, 20000, 50000, 80000, 100000]
+subsample_sizes = [100, 1000, 5000, 10000, 20000, 50000, 80000]
 models = {
     "SVM": predict_svm,
     "Neural Network": predict_neural_network,
@@ -150,4 +152,7 @@ for model_name, predict in models.items():
         plt.xticks(rotation=45, ha='right', fontsize=11)
         plt.tight_layout()
         ax.grid(True, linestyle='--', alpha=0.6)
+
+        filename = f"{model_name}__Samples_{subsample_size}__Iterations_{iteration_counter}__{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+        plt.savefig("./plots/varying_sample_size/" + filename)
         plt.show()
