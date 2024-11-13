@@ -22,7 +22,7 @@ from qualitative_analysis import util
 def predict_svm(X, y):
     svm_model = SVC(kernel='linear', probability=True)  # Enable probability estimation
     svm_model.fit(X, y)
-    return svm_model.predict_proba(X)[:, 1]
+    return svm_model.predict_proba(X)
 
 
 def predict_neural_network(X, y):
@@ -97,6 +97,7 @@ for model_name, predict in models.items():
             # Train Model
             print("      Training Model...")
             predicted_probabilities = predict(X, y)
+            print(predicted_probabilities)
 
             # Calculate Metric Values #
             print("      Evaluating Metrics...")
