@@ -1,7 +1,10 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import scipy.stats as st
 from scipy import stats
 
+import data_generation
+import data_generation as dg
 from metrics.ace import ace
 from metrics.balance_score import balance_score
 from metrics.ece import ece
@@ -9,6 +12,18 @@ from metrics.fce import fce
 from metrics.ksce import ksce
 from metrics.tce import tce
 from metrics.true_ece import true_ece
+
+
+def gummy_worm_dataset() -> dg.DataGeneration:
+    dist1_1 = st.multivariate_normal(mean=[10, 10], cov=1, allow_singular=True, seed=42)
+
+
+    dist1_2 = st.multivariate_normal(mean=[6, 2], cov=1.7, allow_singular=True, seed=13)
+    dist2_1 = st.multivariate_normal(mean=[7, 10], cov=1, allow_singular=True, seed=165)
+    dist2_2 = st.multivariate_normal(mean=[6, 6], cov=1.7, allow_singular=True, seed=37)
+    class_object1 = dg.ClassObject([dist1_1, dist1_2], None)
+    class_object2 = dg.ClassObject([dist2_1, dist2_2], None)
+    return dg.DataGeneration([class_object1, class_object2], n_uninformative_features=0, title="GummyWorm Dataset")
 
 
 def plot_pred_prob_dists(steps: np.array, samples: np.ndarray, calcProbs: callable, label: str, title="Predicted Probability Distributions"):
