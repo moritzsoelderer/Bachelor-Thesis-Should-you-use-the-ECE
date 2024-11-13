@@ -16,13 +16,13 @@ from metrics.fce import fce
 from metrics.ksce import ksce
 from metrics.tce import tce
 from metrics.true_ece import true_ece
+from qualitative_analysis import util
 
 
 def predict_svm(X, y):
     svm_model = SVC(kernel='linear', probability=True)  # Enable probability estimation
     svm_model.fit(X, y)
-    svm_positive_probabilities = svm_model.predict_proba(X)[:, 1]
-    return np.column_stack((1 - svm_positive_probabilities, svm_positive_probabilities))
+    return svm_model.predict_proba(X)[:, 1]
 
 
 def predict_neural_network(X, y):
@@ -38,15 +38,13 @@ def predict_neural_network(X, y):
 def predict_logistic_regression(X, y):
     model = LogisticRegression()
     model.fit(X, y)
-    lr_positive_probabilities = model.predict_proba(X)
-    return np.column_stack((1 - lr_positive_probabilities, lr_positive_probabilities))
+    return model.predict_proba(X)
 
 
 def predict_random_forest(X, y):
     model = RandomForestClassifier(n_estimators=100)
     model.fit(X, y)
-    rf_positive_probabilities = model.predict_proba(X)
-    return np.column_stack((1 - rf_positive_probabilities, rf_positive_probabilities))
+    return model.predict_proba(X)
 
 
 # Declare Metavariables #
@@ -60,14 +58,7 @@ models = {
 }
 
 # Generate Dataset #
-dist1_1 = st.multivariate_normal(mean=[10, 10], cov=1, allow_singular=True, seed=42)
-dist1_2 = st.multivariate_normal(mean=[6, 2], cov=1.7, allow_singular=True, seed=13)
-dist2_1 = st.multivariate_normal(mean=[7, 10], cov=1, allow_singular=True, seed=165)
-dist2_2 = st.multivariate_normal(mean=[6, 6], cov=1.7, allow_singular=True, seed=37)
-class_object1 = dg.ClassObject([dist1_1, dist1_2], None)
-class_object2 = dg.ClassObject([dist2_1, dist2_2], None)
-data_generation = dg.DataGeneration([class_object1, class_object2], n_uninformative_features=0,
-                                    title="GummyWorm Dataset")
+data_generation = util.gummy_worm_dataset()
 sample, labels = data_generation.generate_data(25000)
 
 # Plot Dataset #
