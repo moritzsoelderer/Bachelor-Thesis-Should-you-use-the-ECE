@@ -1,10 +1,8 @@
-import multiprocessing
 from datetime import datetime
 
 import numpy as np
-import pandas as pd
 from joblib import Parallel, delayed
-from keras import Sequential
+from keras import Sequential, Input
 from keras.src.layers import Dense, Dropout
 from keras.src.optimizers import Adam, SGD
 from matplotlib import pyplot as plt
@@ -22,7 +20,6 @@ from metrics.tce import tce
 from metrics.true_ece import true_ece
 from qualitative_analysis import util
 from qualitative_analysis._search_modified import GridSearchWithEstimatorOutput
-
 
 
 def svm_info():
@@ -71,36 +68,48 @@ def svm_info():
     return svm_model, param_grid
 
 
-def create_neural_network(layers, units, activation, optimizer,
-                 learning_rate, batch_size, epochs, dropout_rate):
+def create_neural_network(optimizer='adam', activation='relu', neurons=12, layers=1, dropout_rate=0.2, learning_rate=0.001):
     model = Sequential()
-    # Add layers based on the `layers` parameter
-    for _ in range(layers):
-        model.add(Dense(units=units, activation=activation))
-        model.add(Dropout(dropout_rate))  # Apply dropout after each layer
 
-    # Choose optimizer
+    model.add(Input(shape=(2,)))
+    # Add input layer
+    model.add(Dense(neurons, activation=activation))  # Input layer with `neurons` number of neurons
+
+    # Add hidden layers
+    for _ in range(layers - 1):
+        model.add(Dense(neurons, activation=activation))  # Adding additional hidden layers
+
+    # Dropout layer for regularization
+    model.add(Dropout(dropout_rate))
+
+    # Output layer
+    model.add(Dense(1, activation='sigmoid'))  # Output layer (binary classification)
+
+    # Optimizer with learning rate if specified
     if optimizer == 'adam':
         optimizer_instance = Adam(learning_rate=learning_rate)
     elif optimizer == 'sgd':
         optimizer_instance = SGD(learning_rate=learning_rate)
+    else:
+        optimizer_instance = optimizer
 
-    model.compile(optimizer=optimizer_instance, loss='binary_crossentropy', metrics=['accuracy'], epochs=epochs, batch_size=batch_size)
+    # Compile the model with the selected optimizer
+    model.compile(optimizer=optimizer_instance, loss='binary_crossentropy', metrics=['accuracy'])
 
     return model
 
 def neural_network_info():
-    model = KerasClassifier(build_fn=create_neural_network, verbose=0)
+    model = KerasClassifier(model=create_neural_network)
 
     param_grid = {
-        'layers': [1, 2, 3],  # Number of hidden layers
-        'units': [32, 64],  # Number of units in each layer
-        'activation': ['sigmoid', 'softmax'],  # Activation functions
-        'optimizer': ['adam', 'sgd'],  # Optimizers
-        'learning_rate': [0.001, 0.01],  # Learning rate for the optimizer
-        'batch_size': [16, 32],  # Batch sizes
-        'epochs': [10, 20],  # Number of epochs
-        'dropout_rate': [0.0, 0.2],  # Dropout rate
+        'batch_size': [32, 64],
+        'epochs': [15],
+        'model__optimizer': ['adam', 'sgd'],
+        'model__activation': ['relu', 'sigmoid'],
+        'model__neurons': [10, 20],  # Number of neurons in each layer
+        'model__layers': [2, 3],  # Number of hidden layers
+        'model__dropout_rate': [0.2, 0.4],  # Dropout rate for regularization
+        'model__learning_rate': [0.01, 0.1]  # Learning rate for Adam and SGD optimizers
     }
 
     return model, param_grid
@@ -159,9 +168,7 @@ def random_forest_info():
 
     return model, param_grid
 
-def process_model(model_info, samples, labels, true_probabilities):
-    accuracy = model_info['accuracy']
-    estimator = model_info['estimator']
+def process_model(accuracy, estimator, samples, labels, true_probabilities):
 
     print(f"   Predicting with model: {estimator}")
     estimator.fit(samples, labels)
@@ -265,13 +272,13 @@ def plot_relative_metrics(model_name, sorted_by, num_estimators, metric_values_s
     plt.show()
 
 model_infos = {
-    #"SVM": svm_info,
+    "SVM": svm_info,
     #"Neural Network": neural_network_info,
     #"Logistic Regression": logistic_regression_info,
-    "Random Forest": random_forest_info
+    #"Random Forest": random_forest_info
 }
 
-sample_size = 10
+sample_size = 40000
 
 def main():
     data_generation = util.gummy_worm_dataset()
@@ -292,11 +299,6 @@ def main():
         estimators = grid_search.cv_results_["estimator"]
         print("Estimators: ", estimators)
 
-        accuracies_and_estimators = pd.DataFrame({
-            "accuracy": accuracies,
-            "estimator": estimators
-        })
-
         metric_values = {
             "accuracy": [],
             "true_ece": [],
@@ -308,11 +310,11 @@ def main():
             "ace": []
         }
 
-        print("Length Accuracies and Estimators:", len(accuracies_and_estimators))
+        print("Length Accuracies and Estimators:", len(estimators))
 
         results = Parallel(n_jobs=-2, verbose=10)(  # n_jobs=-1 uses all available CPUs
-            delayed(process_model)(model_info, samples.copy(), labels.copy(), true_probabilities.copy())
-            for model_info in accuracies_and_estimators
+            delayed(process_model)(accuracies[i], estimators[i], samples.copy(), labels.copy(), true_probabilities.copy())
+            for i in range(len(estimators))
         )
 
         print("Results: ", results)
@@ -334,7 +336,7 @@ def main():
 
         print(" Plotting...")
         datetime_now = datetime.now()
-        num_estimators = len(accuracies_and_estimators[:, 1])
+        num_estimators = len(estimators)
 
         indices_and_sort_order = [(0, False), (1, True)]
 
