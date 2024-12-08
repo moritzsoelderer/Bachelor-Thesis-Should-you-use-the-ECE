@@ -1140,11 +1140,11 @@ class BaseSearchCV(MetaEstimatorMixin, BaseEstimator, metaclass=ABCMeta):
                     )
                 results["rank_%s" % key_name] = rank_result
 
-        def remove_every_nth_element(lst, divisors):
-            return [lst[i] for i in range(len(lst)) if all(i % d != 0 for d in divisors)]
+        def remove_every_nth_element(lst, d):
+            return [lst[i] for i in range(len(lst)) if i % d == 1]
 
         # Remove duplicate estimators trained on different folds
-        distinct_estimators = remove_every_nth_element(out["estimator"], range(2, self.cv + 1))
+        distinct_estimators = remove_every_nth_element(out["estimator"], self.cv)
 
         results["estimator"] = distinct_estimators
         _store("fit_time", out["fit_time"])

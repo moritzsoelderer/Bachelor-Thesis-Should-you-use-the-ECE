@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 from scikeras.wrappers import KerasClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 
 from metrics.ace import ace
@@ -168,20 +169,20 @@ def random_forest_info():
 
     return model, param_grid
 
-def process_model(accuracy, estimator, samples, labels, true_probabilities):
+def process_model(accuracy, estimator,X_test, y_test, true_probabilities):
 
     print(f"   Predicting with model: {estimator}")
-    estimator.fit(samples, labels)
-    predictions = estimator.predict_proba(samples)
+    print(X_test.shape, " : ", y_test.shape, " : ", true_probabilities.shape)
+    predictions = estimator.predict_proba(X_test)
 
     # Evaluate metrics
     true_ece_score = true_ece(predictions, true_probabilities)
-    ece_score = ece(predictions, labels, 15)
-    balance_score_score = np.abs(balance_score(predictions, labels))
-    fce_score = fce(predictions, labels, 15)
-    ksce_score = ksce(predictions, labels)
-    tce_score = tce(predictions, labels, n_bin=15) / 100.0
-    ace_score = ace(predictions, labels, 15)
+    ece_score = ece(predictions, y_test, 15)
+    balance_score_score = np.abs(balance_score(predictions, y_test))
+    fce_score = fce(predictions, y_test, 15)
+    ksce_score = ksce(predictions, y_test)
+    tce_score = tce(predictions, y_test, n_bin=15) / 100.0
+    ace_score = ace(predictions, y_test, 15)
 
     # Store metric values
     return {
@@ -224,10 +225,10 @@ def sort_by_key_index(metric_values: dict, keyIndex: int, reverse: bool):
     return metric_values_sorted
 
 
-def plot_absolute_metrics(model_name, sorted_by, num_estimators, metric_values_sorted, datetime_now, sample_size):
+def plot_absolute_metrics(model_name, sorted_by, num_estimators, metric_values_sorted, datetime_now, sample_size, num_folds):
     # Plotting Absolute Metrics #
     plt.figure(figsize=(18, 6), dpi=150)
-    plt.title("Grid Search " + model_name + " - Estimators: " + str(num_estimators) + ", Sample Size: " + str(sample_size), fontsize=14, fontweight='bold')
+    plt.title("Grid Search " + model_name + " - Estimators: " + str(num_estimators) + ", Folds: " + str(num_folds) + ", Sample Size: " + str(sample_size), fontsize=14, fontweight='bold')
     plt.xlabel(model_name + 's' + " (Sorted by: " + sorted_by + ")", fontsize=12)
     plt.ylabel("Metrics", fontsize=12)
     plt.grid(True, linestyle='--', alpha=0.6)
@@ -243,14 +244,14 @@ def plot_absolute_metrics(model_name, sorted_by, num_estimators, metric_values_s
 
     plt.legend(loc='upper left', bbox_to_anchor=(1, 1))  # Position outside the top-right corner
     plt.tight_layout(pad=1.12)
-    filename = f"{model_name}__Samples_{sample_size}__Estimators_{x_values[-1]}__AbsoluteValues__SortedBy_{sorted_by}__{datetime_now.strftime('%Y%m%d_%H%M%S')}.png"
+    filename = f"{model_name}__Samples_{sample_size}__Estimators_{x_values[-1]}__Folds_{num_folds}__AbsoluteValues__SortedBy_{sorted_by}__{datetime_now.strftime('%Y%m%d_%H%M%S')}.png"
     plt.savefig("./plots/grid_search/" + filename)
     plt.show()
 
-def plot_relative_metrics(model_name, sorted_by, num_estimators, metric_values_sorted, datetime_now, sample_size):
+def plot_relative_metrics(model_name, sorted_by, num_estimators, metric_values_sorted, datetime_now, sample_size, num_folds):
     # Plotting Relative Metrics #
     plt.figure(figsize=(18, 6))
-    plt.title("Grid Search " + model_name + " (Relative Values) " + "- Estimators: " + str(num_estimators) + ", Sample Size: " + str(sample_size), fontsize=14, fontweight='bold')
+    plt.title("Grid Search " + model_name + " (Relative Values) " + "- Estimators: " + str(num_estimators) + ", Folds: " + str(num_folds) + ", Sample Size: " + str(sample_size), fontsize=14, fontweight='bold')
     plt.xlabel(model_name + 's' + " (Sorted by: " + sorted_by + ")", fontsize=12)
     plt.ylabel("Metrics (Relative to True ECE)", fontsize=12)
     plt.grid(True, linestyle='--', alpha=0.6)
@@ -267,24 +268,27 @@ def plot_relative_metrics(model_name, sorted_by, num_estimators, metric_values_s
 
     plt.legend(loc='upper left', bbox_to_anchor=(1, 1))  # Position outside the top-right corner
     plt.tight_layout(pad=1.12)
-    filename = f"{model_name}__Samples_{sample_size}__Estimators_{x_values[-1]}__RelativeValues__SortedBy_{sorted_by}__{datetime_now.strftime('%Y%m%d_%H%M%S')}.png"
+    filename = f"{model_name}__Samples_{sample_size}__Estimators_{x_values[-1]}__Folds_{num_folds}__RelativeValues__SortedBy_{sorted_by}__{datetime_now.strftime('%Y%m%d_%H%M%S')}.png"
     plt.savefig("./plots/grid_search/" + filename)
     plt.show()
 
 model_infos = {
     "SVM": svm_info,
-    #"Neural Network": neural_network_info,
-    #"Logistic Regression": logistic_regression_info,
-    #"Random Forest": random_forest_info
+    "Neural Network": neural_network_info,
+    "Logistic Regression": logistic_regression_info,
+    "Random Forest": random_forest_info
 }
 
-sample_size = 40000
+sample_size = 10000
+num_folds = 5
 
 def main():
     data_generation = util.gummy_worm_dataset()
     samples, labels = data_generation.generate_data(n_examples=sample_size)
+
+    X_train, X_test, y_train, y_test = train_test_split(samples, labels, test_size=.2)
     true_probabilities = np.array(
-        [[data_generation.cond_prob(x, k=0), data_generation.cond_prob(x, k=1)] for x in samples])
+        [[data_generation.cond_prob(x, k=0), data_generation.cond_prob(x, k=1)] for x in X_test])
 
     for model_name, model_info in model_infos.items():
         print("Model: ", model_name)
@@ -292,8 +296,8 @@ def main():
         model, parameter_grid = model_info()
 
         print(" Performing GridSearch")
-        grid_search = GridSearchWithEstimatorOutput(estimator=model, param_grid=parameter_grid, scoring='accuracy', cv=2, n_jobs=-2, verbose=3)
-        grid_search.fit(samples, labels)
+        grid_search = GridSearchWithEstimatorOutput(estimator=model, param_grid=parameter_grid, scoring='accuracy', cv=num_folds, n_jobs=-2, verbose=3)
+        grid_search.fit(X_train, y_train)
 
         accuracies = grid_search.cv_results_["mean_test_score"]
         estimators = grid_search.cv_results_["estimator"]
@@ -313,7 +317,7 @@ def main():
         print("Length Accuracies and Estimators:", len(estimators))
 
         results = Parallel(n_jobs=-2, verbose=10)(  # n_jobs=-1 uses all available CPUs
-            delayed(process_model)(accuracies[i], estimators[i], samples.copy(), labels.copy(), true_probabilities.copy())
+            delayed(process_model)(accuracies[i], estimators[i], X_test.copy(), y_test.copy(), true_probabilities.copy())
             for i in range(len(estimators))
         )
 
@@ -343,8 +347,8 @@ def main():
         for index, sort_order in indices_and_sort_order:
             metric_values_sorted = sort_by_key_index(metric_values, index, reverse=sort_order)
             sorted_by = list(metric_values.keys())[index]
-            plot_absolute_metrics(model_name, sorted_by, num_estimators, metric_values_sorted, datetime_now, sample_size)
-            plot_relative_metrics(model_name, sorted_by, num_estimators, metric_values_sorted, datetime_now, sample_size)
+            plot_absolute_metrics(model_name, sorted_by, num_estimators, metric_values_sorted, datetime_now, sample_size, num_folds)
+            plot_relative_metrics(model_name, sorted_by, num_estimators, metric_values_sorted, datetime_now, sample_size, num_folds)
 
 
 
