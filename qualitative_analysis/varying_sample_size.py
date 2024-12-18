@@ -2,6 +2,7 @@ from datetime import datetime
 
 import numpy as np
 import tensorflow as tf
+import pickle
 from joblib import delayed, Parallel
 from matplotlib import pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
@@ -80,7 +81,6 @@ def process_model(test_sample, subsample_size, iteration_counter, true_probabili
         "TCE": [],
         "ACE": []
     }
-
     for iteration in range(iteration_counter):
         # Prepare Subsample Indices #
         subsample_indices = np.random.choice(test_sample.shape[0], int(subsample_size), replace=True)
@@ -92,6 +92,7 @@ def process_model(test_sample, subsample_size, iteration_counter, true_probabili
 
         # Predict Probabilities #
         predicted_probabilities = fun[1](fun[0], X_test)
+        print("      DEBUG: Predicted Probabilities Shape: ", predicted_probabilities.shape)
 
         # Calculate Metric Values #
         print("      Evaluating Metrics...")
@@ -105,10 +106,14 @@ def process_model(test_sample, subsample_size, iteration_counter, true_probabili
 
     print("   Calculating Means and Std Deviations...")
     for metric, scores in metric_values.items():
-        relative_scores = np.array(scores) - metric_values["True ECE"]
-        means[metric] = np.mean(relative_scores)
-        std_devs[metric] = np.std(relative_scores)
+        means[metric] = np.mean(scores)
+        std_devs[metric] = np.std(scores)
 
+    print("   DEBUG: Result: ", {
+        "Subsample Size": subsample_size,
+        "means": means,
+        "std_devs": std_devs
+    })
     return {
         "Subsample Size": subsample_size,
         "means": means,
@@ -117,7 +122,7 @@ def process_model(test_sample, subsample_size, iteration_counter, true_probabili
 
 
 # Declare Metavariables #
-dataset_size = 100000
+dataset_size = 1000
 iteration_counter = 20
 min_samples = 100
 max_samples = dataset_size/2
@@ -128,15 +133,19 @@ def main():
     # Generate Dataset #
     print("Generating Dataset")
     data_generation = util.gummy_worm_dataset()
-    sample, labels = data_generation.generate_data(dataset_size)
+    sample, labels = data_generation.generate_data(int(dataset_size/4))
+    print("DEBUG: Sample Shape: ", sample.shape)
+    print("DEBUG: Labels Shape: ", labels.shape)
 
-    # randomly split dataset into two halfs (train and test) // Can also be achieved with train_test_split? LOL
+    # randomly split dataset into two halfs (train and test)
     train_sample, test_sample, train_labels, test_labels = train_test_split(sample, labels, test_size=0.5, train_size=0.5, random_state=42)
-
+    print("DEBUG: Train Sample Shape: ", train_sample.shape)
+    print("DEBUG: Test Sample Shape: ", test_sample.shape)
     # Calculate true probabilties for test set (training set is not needed) #
     print("Calculating True Probabilities")
     true_probabilities = np.array(
         [[data_generation.cond_prob(x, k=0), data_generation.cond_prob(x, k=1)] for x in test_sample])
+    print("DEBUG: True Probabilities Shape: ", true_probabilities.shape)
 
     # Instantiate and train models #
     print("Training Models")
@@ -192,6 +201,13 @@ def main():
 
         results = sorted(results, key=lambda x: x["Subsample Size"], reverse=False)
 
+        print("DEBUG: Results Subsample Size: ", results[0], results[1], " : ", results[-2], results[-1])
+
+        # Persist Values #
+        filename = f"{model_name}__Iterations_{iteration_counter}__{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        with open('./data/varying_sample_size/' + filename + '.pkl', 'wb') as file:
+            pickle.dump(results, file)
+
         # Store Metric Values #
         for result in results:
             for metric, mean in result["means"].items():
@@ -204,8 +220,9 @@ def main():
         fig, ax = plt.subplots(figsize=(10, 6), dpi=150)
 
         for metric in means.keys():
-            ax.plot(subsample_sizes, means[metric], label=metric)
-            ax.fill_between(subsample_sizes, np.array(means[metric]) - np.array(std_devs[metric]), np.array(means[metric]) + np.array(std_devs[metric]), alpha=0.2)
+            relative_means = np.array(means[metric]) - means["True ECE"]
+            ax.plot(subsample_sizes, relative_means, label=metric)
+            ax.fill_between(subsample_sizes, relative_means - np.array(std_devs[metric]), relative_means + np.array(std_devs[metric]), alpha=0.2)
         plt.subplots_adjust(left=0.15, right=0.95, top=0.9, bottom=0.25)
         plt.xlabel('Sample Size', fontsize=12)
         plt.ylabel('Metric Values (Relative to True ECE)', fontsize=12)
@@ -214,8 +231,7 @@ def main():
         plt.legend()
         ax.grid(True, linestyle='--', alpha=0.6)
 
-        filename = f"{model_name}__Iterations_{iteration_counter}__{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
-        plt.savefig("./plots/varying_sample_size/" + filename)
+        plt.savefig("./plots/varying_sample_size/" + filename + ".png")
         plt.show()
 
 
