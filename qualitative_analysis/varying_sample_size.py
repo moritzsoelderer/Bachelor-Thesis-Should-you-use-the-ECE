@@ -204,8 +204,8 @@ def main():
         print("DEBUG: Results Subsample Size: ", results[0], results[1], " : ", results[-2], results[-1])
 
         # Persist Values #
-        filename = f"{model_name}__Iterations_{iteration_counter}__{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        with open('./data/varying_sample_size/' + filename + '.pkl', 'wb') as file:
+        filename_absolute = f"{model_name}__Iterations_{iteration_counter}__AbsoluteValues__{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        with open('./data/varying_sample_size/' + filename_absolute + '.pkl', 'wb') as file:
             pickle.dump(results, file)
 
         # Store Metric Values #
@@ -215,8 +215,28 @@ def main():
             for metric, std in result["std_devs"].items():
                 std_devs[metric].append(std)
 
-        # Plotting Mean and Std Deviation #
+        # Plotting Absolute Mean and Std Deviation #
         print("   Plotting...")
+        fig, ax = plt.subplots(figsize=(10, 6), dpi=150)
+
+        for metric in means.keys():
+            metric_means = np.array(means[metric])
+            ax.plot(subsample_sizes, metric_means, label=metric)
+            ax.fill_between(subsample_sizes, metric_means - np.array(std_devs[metric]), metric_means + np.array(std_devs[metric]), alpha=0.2)
+        plt.subplots_adjust(left=0.15, right=0.95, top=0.9, bottom=0.25)
+        plt.xlabel('Sample Size', fontsize=12)
+        plt.ylabel('Metric Values', fontsize=12)
+        plt.title(f'Varying Sample Size - {model_name}, Iterations: {iteration_counter}', fontsize=14, fontweight='bold')
+        plt.tight_layout()
+        plt.legend()
+        ax.grid(True, linestyle='--', alpha=0.6)
+
+        plt.savefig("./plots/varying_sample_size/" + filename_absolute + ".png")
+        plt.show()
+
+        # Plotting Relative Mean and Std Deviation #
+        print("   Plotting...")
+        filename_relative = f"{model_name}__Iterations_{iteration_counter}__RelativeValues__{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         fig, ax = plt.subplots(figsize=(10, 6), dpi=150)
 
         for metric in means.keys():
@@ -231,7 +251,7 @@ def main():
         plt.legend()
         ax.grid(True, linestyle='--', alpha=0.6)
 
-        plt.savefig("./plots/varying_sample_size/" + filename + ".png")
+        plt.savefig("./plots/varying_sample_size/" + filename_relative + ".png")
         plt.show()
 
 
