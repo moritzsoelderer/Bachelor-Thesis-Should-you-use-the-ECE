@@ -7,7 +7,7 @@ This repository includes a modified version of Scikit-learn.
 ## Modifications to Scikit-learn
 - Modified the `sklearn.model_selection._search` file (from Scikit-learn) to add the output
     of all used estimators after performing grid search. The modified file can be found
-    [here](./qualitative_analysis/_search_modified.py) `qualitative_analysis._search_modified.py`.
+    [here](src/qualitative_analysis/_search_modified.py) `qualitative_analysis._search_modified.py`.
 - The original Scikit-learn code is licensed under the BSD 3-Clause License.
 
 ## License Information
