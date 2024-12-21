@@ -3,10 +3,9 @@ import pickle
 import numpy as np
 from matplotlib import pyplot as plt
 
-with open('./data/varying_sample_size/SVM__Iterations_20__20241218_151709.pkl', 'rb') as file:
+with open('./data/varying_sample_size/Logistic Regression__Iterations_20__AbsoluteValues__20241219_000003.pkl', 'rb') as file:
     results = pickle.load(file)
     print(results)
-
     means = {
         "True ECE": [],
         "ECE": [],
@@ -48,8 +47,8 @@ with open('./data/varying_sample_size/SVM__Iterations_20__20241218_151709.pkl', 
                             np.array(means[metric]) + np.array(std_devs[metric]), alpha=0.2)
     plt.subplots_adjust(left=0.15, right=0.95, top=0.9, bottom=0.25)
     plt.xlabel('Sample Size', fontsize=12)
-    plt.ylabel('Metric Values (Relative to True ECE)', fontsize=12)
-    plt.title('SVM__Iterations_20__20241218_151709.pkl', fontsize=14, fontweight='bold')
+    plt.ylabel('Metric Values', fontsize=12)
+    plt.title('Random Forest__Iterations_20__AbsoluteValues__20241219_052345.pkl', fontsize=14, fontweight='bold')
     plt.tight_layout()
     plt.legend()
     ax.grid(True, linestyle='--', alpha=0.6)
