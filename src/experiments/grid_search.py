@@ -21,7 +21,7 @@ from src.metrics.ksce import ksce
 from src.metrics.tce import tce
 from src.metrics.true_ece import true_ece
 from src.qualitative_analysis import util
-from src.qualitative_analysis._search_modified import GridSearchWithEstimatorOutput
+from _search_modified import GridSearchWithEstimatorOutput
 
 
 def svm_info():
@@ -258,12 +258,13 @@ def plot_absolute_metrics(model_name, sorted_by, num_estimators, metric_values_s
 
     x_values = range(1, num_estimators + 1)
     plt.plot(x_values, metric_values_sorted['true_ece'], label="True ECE")
-    plt.plot(x_values, metric_values_sorted['ece'], label="ECE")
+    plt.plot(x_values, metric_values_sorted['ece'], label="ECE 15")
     plt.plot(x_values, metric_values_sorted['balance_score'], label="Balance Score")
-    plt.plot(x_values, metric_values_sorted['fce'], label="FCE")
+    plt.plot(x_values, metric_values_sorted['fce'], label="FCE 15")
     plt.plot(x_values, metric_values_sorted['ksce'], label="KSCE")
-    plt.plot(x_values, metric_values_sorted['tce'], label="TCE")
-    plt.plot(x_values, metric_values_sorted['ace'], label="ACE")
+    plt.plot(x_values, metric_values_sorted['tce'], label="TCE 15")
+    plt.plot(x_values, metric_values_sorted['ace'], label="ACE 15")
+    plt.plot(x_values, metric_values_sorted['accuracy'], label="Accuracy")
 
     plt.legend(loc='upper left', bbox_to_anchor=(1, 1))  # Position outside the top-right corner
     plt.tight_layout(pad=1.12)
@@ -282,12 +283,13 @@ def plot_relative_metrics(model_name, sorted_by, num_estimators, metric_values_s
     x_values = range(1, num_estimators + 1)
     true_ece_array = np.array(metric_values_sorted['true_ece'])
     plt.plot(x_values, metric_values_sorted['true_ece'] - true_ece_array, label="True ECE")
-    plt.plot(x_values, metric_values_sorted['ece'] - true_ece_array, label="ECE")
+    plt.plot(x_values, metric_values_sorted['ece'] - true_ece_array, label="ECE 15")
     plt.plot(x_values, metric_values_sorted['balance_score'] - true_ece_array, label="Balance Score")
-    plt.plot(x_values, metric_values_sorted['fce'] - true_ece_array, label="FCE")
+    plt.plot(x_values, metric_values_sorted['fce'] - true_ece_array, label="FCE 15")
     plt.plot(x_values, metric_values_sorted['ksce'] - true_ece_array, label="KSCE")
-    plt.plot(x_values, metric_values_sorted['tce'] - true_ece_array, label="TCE")
-    plt.plot(x_values, metric_values_sorted['ace'] - true_ece_array, label="ACE")
+    plt.plot(x_values, metric_values_sorted['tce'] - true_ece_array, label="TCE 15")
+    plt.plot(x_values, metric_values_sorted['ace'] - true_ece_array, label="ACE 15")
+    plt.plot(x_values, metric_values_sorted['accuracy'], label="Accuracy")
 
     plt.legend(loc='upper left', bbox_to_anchor=(1, 1))  # Position outside the top-right corner
     plt.tight_layout(pad=1.12)
@@ -299,7 +301,7 @@ model_infos = {
     #"SVM": svm_info,
     #"Neural Network": neural_network_info,
     "Logistic Regression": logistic_regression_info,
-    #"Random Forest": random_forest_info
+    "Random Forest": random_forest_info
 }
 
 sample_size = 10000
