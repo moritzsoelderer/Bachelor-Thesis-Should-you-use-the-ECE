@@ -22,6 +22,7 @@ from src.metrics.tce import tce
 from src.metrics.true_ece import true_ece
 from src.qualitative_analysis import util
 from _search_modified import GridSearchWithEstimatorOutput
+from src.utilities.data_generation import gummy_worm_dataset
 
 
 def svm_info():
@@ -308,8 +309,8 @@ sample_size = 10000
 num_folds = 5
 
 def main():
-    data_generation = util.gummy_worm_dataset()
-    samples, labels = data_generation.generate_data(n_examples=sample_size)
+    data_generation = gummy_worm_dataset()
+    samples, labels = data_generation.generate_data(n_examples=int(sample_size/4))
 
     X_train, X_test, y_train, y_test = train_test_split(samples, labels, test_size=.2)
     true_probabilities = np.array(
