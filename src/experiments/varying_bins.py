@@ -123,12 +123,12 @@ def process_model(test_sample, bins, test_sample_size, iteration_counter, true_p
 
 
 # Declare Metavariables #
-dataset_size = 20000
+dataset_size = 100000
 iteration_counter = 20
 test_sample_size = 2000
-min_bins = 5
-step = 2
-binss = np.arange(min_bins, test_sample_size + step, step)
+min_bins = 1
+step = 1
+binss = np.unique(np.logspace(0, np.log10(2000), num=300, base=10, dtype=np.int64))
 
 
 def main():
