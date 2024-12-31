@@ -28,7 +28,7 @@ class MixtureInformation:
         if self.features_before_value is None:
             scale = np.abs(self.features_before_interval[1] - self.features_before_interval[0])
             shift = self.features_before_interval[0]
-            uniform = np.array([np.append(scale * st.uniform.rvs(size=self.features_before), sample) + shift for sample in samples])
+            uniform = np.array([np.append(scale * st.uniform.rvs(size=self.features_before) + shift, sample) for sample in samples])
             return uniform
         else:
             return np.array(
@@ -36,7 +36,9 @@ class MixtureInformation:
 
     def add_after(self, samples: np.ndarray):
         if self.features_after_value is None:
-            return np.array([np.append(sample, st.uniform.rvs(size=self.features_after)) for sample in samples])
+            scale = np.abs(self.features_after_interval[1] - self.features_after_interval[0])
+            shift = self.features_after_interval[0]
+            return np.array([np.append(sample, scale * st.uniform.rvs(size=self.features_after) + shift) for sample in samples])
         else:
             return np.array(
                 [np.append(sample, [self.features_after_value] * self.features_after) for sample in samples])
@@ -302,16 +304,15 @@ class DataGeneration:
         if axis3_label is None:
             axis3_label = "feature " + str(axis3)
 
-        fig = plt.figure(figsize=(10, 8), dpi=300)
+        fig = plt.figure(figsize=(9, 9), dpi=300)
         ax = fig.add_subplot(111, projection='3d')
         ax.scatter([s[axis1] for s in self.samples], [s[axis2] for s in self.samples], [s[axis3] for s in self.samples], color=colormap[self.labels], s=0.9)
         ax.view_init(elev=vert_angle, azim=azimute_angle)
-        plt.tight_layout()
-        plt.title(self.title, fontsize=14, fontweight='bold')
+        plt.title(self.title, fontsize=24, fontweight='bold')
 
-        ax.set_xlabel(axis1_label, fontsize=12)
-        ax.set_ylabel(axis2_label, fontsize=12)
-        ax.set_zlabel(axis3_label, fontsize=12)
+        ax.set_xlabel(axis1_label, fontsize=12, labelpad=20, fontweight='bold')
+        ax.set_ylabel(axis2_label, fontsize=12, labelpad=20, fontweight='bold')
+        ax.set_zlabel(axis3_label, fontsize=12, labelpad=20, fontweight='bold')
 
         class_labels = [i for i in range(len(self.classes))]
 
@@ -337,25 +338,22 @@ def gummy_worm_dataset() -> DataGeneration:
     class_object2 = ClassObject([dist2_1, dist2_2], None)
     return DataGeneration([class_object1, class_object2], n_uninformative_features=0, title="GummyWorm Dataset")
 
-def test() -> DataGeneration:
-    dist1_1 = st.multivariate_normal(mean=[1, 1, 1], cov=2, allow_singular=True, seed=33)
-    dist1_2 = st.multivariate_normal(mean=[6, 2], cov=1.7, allow_singular=True, seed=101)
-    dist2_1 = st.multivariate_normal(mean=[7, 10, 3], cov=1, allow_singular=True, seed=57)
-    dist2_2 = st.multivariate_normal(mean=[-8, -4, 5], cov=.5, allow_singular=True, seed=92)
-    dist1_3 = st.multivariate_normal(mean=[8, -10], cov=1, allow_singular=True, seed=1)
-    dist2_3 = st.multivariate_normal(mean=[4, 4, 4], cov=1.7, allow_singular=True, seed=44)
+def sad_clown_dataset() -> DataGeneration:
+    dist1_1 = st.multivariate_normal(mean=[-5, 9, -1.5], cov=4.5, allow_singular=True, seed=33)
+    dist1_2 = st.multivariate_normal(mean=[6, -4], cov=8, allow_singular=True, seed=101)
+    dist2_1 = st.multivariate_normal(mean=[7, 10, 3], cov=3, allow_singular=True, seed=57)
+    dist2_2 = st.multivariate_normal(mean=[-8, -4, 5], cov=6, allow_singular=True, seed=92)
+    dist1_3 = st.multivariate_normal(mean=[8, -10], cov=5, allow_singular=True, seed=1)
+    dist2_3 = st.multivariate_normal(mean=[4, 4, 4], cov=2.7, allow_singular=True, seed=44)
 
-    class_object1 = ClassObject([dist1_1, dist1_2, dist1_3], [MixtureInformation.empty(), MixtureInformation(features_after=1), MixtureInformation(features_before=1, features_before_interval=(-10, 10))])
+    class_object1 = ClassObject([dist1_1, dist1_2, dist1_3],
+    [
+                        MixtureInformation.empty(),
+                        MixtureInformation(features_after=1, features_after_interval=(-20, 10)),
+                        MixtureInformation(features_before=1, features_before_interval=(-15, 10))
+                    ]
+    )
     class_object2 = ClassObject([dist2_1, dist2_2, dist2_3], None)
-    return DataGeneration([class_object1, class_object2], n_uninformative_features=0, title="Test")
+    return DataGeneration([class_object1, class_object2], n_uninformative_features=0, title="SadClown Dataset")
 
 
-if __name__ == "__main__":
-    dg = test()
-    dg.generate_data(1000)
-    #dg.scatter2d(0, 1, show=True)
-    #dg.scatter2d(1, 2, show=True)
-    #dg.scatter2d(2, 0, show=True)
-    dg.scatter3d(0, 1, 2, vert_angle=20, azimute_angle=5, show=True)
-    dg.scatter3d(0, 1, 2, vert_angle=20, azimute_angle=45, show=True)
-    dg.scatter3d(0, 1, 2, vert_angle=20, azimute_angle=85, show=True)
