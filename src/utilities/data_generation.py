@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats as st
 from matplotlib.lines import Line2D
+from mpl_toolkits.mplot3d.art3d import Line3D
 from scipy.stats import rv_continuous
 
 
@@ -12,9 +13,12 @@ class MixtureInformation:
     features_after_value: float = None
 
     def __init__(self, features_before: int = 0, features_after: int = 0,
-                 features_before_value: float = None, features_after_value: float = None):
+                 features_before_value: float = None, features_after_value: float = None,
+                 features_before_interval: tuple = (0.0, 1.0), features_after_interval: tuple = (0.0, 1.0)):
         self.features_before = abs(features_before)
         self.features_after = abs(features_after)
+        self.features_before_interval = features_before_interval
+        self.features_after_interval = features_after_interval
         if features_before_value is not None:
             self.features_before_value = abs(features_before_value)
         if features_after_value is not None:
@@ -22,7 +26,10 @@ class MixtureInformation:
 
     def add_before(self, samples: np.ndarray):
         if self.features_before_value is None:
-            return np.array([np.append(st.uniform.rvs(size=self.features_before), sample) for sample in samples])
+            scale = np.abs(self.features_before_interval[1] - self.features_before_interval[0])
+            shift = self.features_before_interval[0]
+            uniform = np.array([np.append(scale * st.uniform.rvs(size=self.features_before), sample) + shift for sample in samples])
+            return uniform
         else:
             return np.array(
                 [np.append([self.features_before_value] * self.features_before, sample) for sample in samples])
@@ -268,14 +275,87 @@ class DataGeneration:
             plt.show()
         return plt
 
+    def scatter3d(self, axis1, axis2, axis3, axis1_label=None, axis2_label=None, axis3_label=None, vert_angle=20, azimute_angle=45, colormap=None, show=False, savePath=None):
+        if colormap is None:
+            colormap = np.array(['red', 'blue'])
+        if len(colormap) < len(self.classes):
+            diff = abs(len(self.classes) - len(colormap))
+            for i in range(diff):
+                colormap = np.append(colormap, colormap[-1])
+        if self.samples is None:
+            raise ValueError("There are no samples - maybe you need to generate some data first")
+        if self.labels is None:
+            raise ValueError("There are no labels - maybe you need to generate some data first")
+        if axis1 > self.n_informative_features + self.n_uninformative_features - 1:
+            raise ValueError("axis1 exceeds number of features")
+        if axis2 > self.n_informative_features + self.n_uninformative_features - 1:
+            raise ValueError("axis2 exceeds number of features")
+        if axis3 > self.n_informative_features + self.n_uninformative_features - 1:
+            raise ValueError("axis3 exceeds number of features")
+
+        if axis1_label is None:
+            axis1_label = "feature " + str(axis1)
+
+        if axis2_label is None:
+            axis2_label = "feature " + str(axis2)
+
+        if axis3_label is None:
+            axis3_label = "feature " + str(axis3)
+
+        fig = plt.figure(figsize=(10, 8), dpi=300)
+        ax = fig.add_subplot(111, projection='3d')
+        ax.scatter([s[axis1] for s in self.samples], [s[axis2] for s in self.samples], [s[axis3] for s in self.samples], color=colormap[self.labels], s=0.9)
+        ax.view_init(elev=vert_angle, azim=azimute_angle)
+        plt.tight_layout()
+        plt.title(self.title, fontsize=14, fontweight='bold')
+
+        ax.set_xlabel(axis1_label, fontsize=12)
+        ax.set_ylabel(axis2_label, fontsize=12)
+        ax.set_zlabel(axis3_label, fontsize=12)
+
+        class_labels = [i for i in range(len(self.classes))]
+
+        legend_elements = [
+            Line3D([0], [0], [0], marker='o', color='white', markerfacecolor=colormap[label], label=str(label))
+            for label in class_labels
+        ]
+        plt.legend(handles=legend_elements, title="Classes", loc='upper left')
+        if savePath is not None:
+            plt.savefig(fname=savePath)
+        if show:
+            plt.show()
+        return plt
+
 
 def gummy_worm_dataset() -> DataGeneration:
     dist1_1 = st.multivariate_normal(mean=[10, 10], cov=1, allow_singular=True, seed=42)
-
-
     dist1_2 = st.multivariate_normal(mean=[6, 2], cov=1.7, allow_singular=True, seed=13)
     dist2_1 = st.multivariate_normal(mean=[7, 10], cov=1, allow_singular=True, seed=165)
     dist2_2 = st.multivariate_normal(mean=[6, 6], cov=1.7, allow_singular=True, seed=37)
+
     class_object1 = ClassObject([dist1_1, dist1_2], None)
     class_object2 = ClassObject([dist2_1, dist2_2], None)
     return DataGeneration([class_object1, class_object2], n_uninformative_features=0, title="GummyWorm Dataset")
+
+def test() -> DataGeneration:
+    dist1_1 = st.multivariate_normal(mean=[1, 1, 1], cov=2, allow_singular=True, seed=33)
+    dist1_2 = st.multivariate_normal(mean=[6, 2], cov=1.7, allow_singular=True, seed=101)
+    dist2_1 = st.multivariate_normal(mean=[7, 10, 3], cov=1, allow_singular=True, seed=57)
+    dist2_2 = st.multivariate_normal(mean=[-8, -4, 5], cov=.5, allow_singular=True, seed=92)
+    dist1_3 = st.multivariate_normal(mean=[8, -10], cov=1, allow_singular=True, seed=1)
+    dist2_3 = st.multivariate_normal(mean=[4, 4, 4], cov=1.7, allow_singular=True, seed=44)
+
+    class_object1 = ClassObject([dist1_1, dist1_2, dist1_3], [MixtureInformation.empty(), MixtureInformation(features_after=1), MixtureInformation(features_before=1, features_before_interval=(-10, 10))])
+    class_object2 = ClassObject([dist2_1, dist2_2, dist2_3], None)
+    return DataGeneration([class_object1, class_object2], n_uninformative_features=0, title="Test")
+
+
+if __name__ == "__main__":
+    dg = test()
+    dg.generate_data(1000)
+    #dg.scatter2d(0, 1, show=True)
+    #dg.scatter2d(1, 2, show=True)
+    #dg.scatter2d(2, 0, show=True)
+    dg.scatter3d(0, 1, 2, vert_angle=20, azimute_angle=5, show=True)
+    dg.scatter3d(0, 1, 2, vert_angle=20, azimute_angle=45, show=True)
+    dg.scatter3d(0, 1, 2, vert_angle=20, azimute_angle=85, show=True)
