@@ -17,7 +17,7 @@ from src.metrics.fce import fce
 from src.metrics.ksce import ksce
 from src.metrics.tce import tce
 from src.metrics.true_ece import true_ece
-from src.utilities.data_generation import gummy_worm_dataset
+from src.utilities.data_generation import gummy_worm_dataset, sad_clown_dataset
 
 # predict distinction for tensorflow and sklearn
 predict_sklearn = lambda model, X_test: model.predict_proba(X_test)
@@ -34,7 +34,7 @@ def train_neural_network(X_train, y_train):
     model.add(tf.keras.layers.Dense(50, activation="tanh"))
     model.add(tf.keras.layers.Dense(2, activation="softmax"))
     model.compile(optimizer="rmsprop", loss="categorical_crossentropy", metrics=["accuracy"])
-    model.fit(X_train.reshape(-1, 2), y_categorical, epochs=15, batch_size=1000)
+    model.fit(X_train.reshape(-1, 3), y_categorical, epochs=15, batch_size=1000)
     return model
 
 
@@ -134,8 +134,8 @@ binss = np.unique(np.logspace(0, np.log10(2000), num=300, base=10, dtype=np.int6
 def main():
     # Generate Dataset #
     print("Generating Dataset")
-    data_generation = gummy_worm_dataset()
-    sample, labels = data_generation.generate_data(int(dataset_size/4))
+    data_generation = sad_clown_dataset()
+    sample, labels = data_generation.generate_data(int(dataset_size/6))
     print("DEBUG: Sample Shape: ", sample.shape)
     print("DEBUG: Labels Shape: ", labels.shape)
 
@@ -206,7 +206,7 @@ def main():
         print("DEBUG: Results Bin Size: ", results[0], results[1], " : ", results[-2], results[-1])
 
         # Persist Values #
-        filename_absolute = f"{model_name}__Iterations_{iteration_counter}__AbsoluteValues__{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        filename_absolute = f"SadClownDataset__{model_name}__Iterations_{iteration_counter}__AbsoluteValues__{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         with open('./data/varying_bins/' + filename_absolute + '.pkl', 'wb') as file:
             pickle.dump(results, file)
 
@@ -238,7 +238,7 @@ def main():
 
         # Plotting Relative Mean and Std Deviation #
         print("   Plotting...")
-        filename_relative = f"{model_name}__Iterations_{iteration_counter}__RelativeValues__{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        filename_relative = f"SadClownDataset__{model_name}__Iterations_{iteration_counter}__RelativeValues__{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         fig, ax = plt.subplots(figsize=(10, 6), dpi=150)
 
         for metric in means.keys():
