@@ -18,7 +18,7 @@ from src.metrics.ksce import ksce
 from src.metrics.tce import tce
 from src.metrics.true_ece import true_ece
 from src.qualitative_analysis import util
-from src.utilities.data_generation import gummy_worm_dataset
+from src.utilities.data_generation import gummy_worm_dataset, imbalanced_gummy_worm_dataset
 
 # predict distinction for tensorflow and sklearn
 predict_sklearn = lambda model, X_test: model.predict_proba(X_test)
@@ -133,7 +133,7 @@ subsample_sizes = np.arange(min_samples, max_samples + step_size, step_size)
 def main():
     # Generate Dataset #
     print("Generating Dataset")
-    data_generation = gummy_worm_dataset()
+    data_generation = imbalanced_gummy_worm_dataset()
     sample, labels = data_generation.generate_data(int(dataset_size/4))
     print("DEBUG: Sample Shape: ", sample.shape)
     print("DEBUG: Labels Shape: ", labels.shape)
@@ -151,17 +151,17 @@ def main():
     # Instantiate and train models #
     print("Training Models")
     print(" Training SVM")
-    #svm = train_svm(train_sample, train_labels)
+    svm = train_svm(train_sample, train_labels)
     print(" Training Neural Network")
-    #neural_network = train_neural_network(train_sample, train_labels)
+    neural_network = train_neural_network(train_sample, train_labels)
     print(" Training Logistic Regression")
     logistic_regression = train_logistic_regression(train_sample, train_labels)
     print(" Training Random Forest")
     random_forest = train_random_forest(train_sample, train_labels)
 
     models = {
-        #"SVM": (svm, predict_sklearn),
-        #"Neural Network": (neural_network, predict_tf),
+        "SVM": (svm, predict_sklearn),
+        "Neural Network": (neural_network, predict_tf),
         "Logistic Regression": (logistic_regression, predict_sklearn),
         "Random Forest": (random_forest, predict_sklearn)
     }
@@ -205,7 +205,7 @@ def main():
         print("DEBUG: Results Subsample Size: ", results[0], results[1], " : ", results[-2], results[-1])
 
         # Persist Values #
-        filename_absolute = f"{model_name}__Iterations_{iteration_counter}__AbsoluteValues__{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        filename_absolute = f"{data_generation.title}__{model_name}__Iterations_{iteration_counter}__AbsoluteValues__{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         with open('./data/varying_sample_size/' + filename_absolute + '.pkl', 'wb') as file:
             pickle.dump(results, file)
 
@@ -237,7 +237,7 @@ def main():
 
         # Plotting Relative Mean and Std Deviation #
         print("   Plotting...")
-        filename_relative = f"{model_name}__Iterations_{iteration_counter}__RelativeValues__{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        filename_relative = f"{data_generation.title}__{model_name}__Iterations_{iteration_counter}__RelativeValues__{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         fig, ax = plt.subplots(figsize=(10, 6), dpi=150)
 
         for metric in means.keys():
