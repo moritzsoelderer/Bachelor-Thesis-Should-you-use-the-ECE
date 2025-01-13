@@ -14,11 +14,12 @@ class MixtureInformation:
 
     def __init__(self, features_before: int = 0, features_after: int = 0,
                  features_before_value: float = None, features_after_value: float = None,
-                 features_before_interval: tuple = (0.0, 1.0), features_after_interval: tuple = (0.0, 1.0)):
+                 features_before_interval: tuple = (0.0, 1.0), features_after_interval: tuple = (0.0, 1.0), seed: int = 1):
         self.features_before = abs(features_before)
         self.features_after = abs(features_after)
         self.features_before_interval = features_before_interval
         self.features_after_interval = features_after_interval
+        self.seed = seed
         if features_before_value is not None:
             self.features_before_value = abs(features_before_value)
         if features_after_value is not None:
@@ -28,6 +29,7 @@ class MixtureInformation:
         if self.features_before_value is None:
             scale = np.abs(self.features_before_interval[1] - self.features_before_interval[0])
             shift = self.features_before_interval[0]
+            np.random.seed(seed=self.seed)
             uniform = np.array([np.append(scale * st.uniform.rvs(size=self.features_before) + shift, sample) for sample in samples])
             return uniform
         else:
@@ -38,6 +40,7 @@ class MixtureInformation:
         if self.features_after_value is None:
             scale = np.abs(self.features_after_interval[1] - self.features_after_interval[0])
             shift = self.features_after_interval[0]
+            np.random.seed(seed=self.seed)
             return np.array([np.append(sample, scale * st.uniform.rvs(size=self.features_after) + shift) for sample in samples])
         else:
             return np.array(
@@ -277,7 +280,7 @@ class DataGeneration:
             plt.show()
         return plt
 
-    def scatter3d(self, axis1, axis2, axis3, axis1_label=None, axis2_label=None, axis3_label=None, vert_angle=20, azimute_angle=45, colormap=None, show=False, savePath=None):
+    def scatter3d(self, axis1=0, axis2=1, axis3=2, axis1_label=None, axis2_label=None, axis3_label=None, vert_angle=20, azimute_angle=45, colormap=None, show=False, savePath=None):
         if colormap is None:
             colormap = np.array(['red', 'blue'])
         if len(colormap) < len(self.classes):

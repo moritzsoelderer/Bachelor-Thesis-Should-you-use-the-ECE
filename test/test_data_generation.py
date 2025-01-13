@@ -1,12 +1,12 @@
-import numpy as np
-
 import unittest
 
-import scipy.stats as st
+import numpy as np
+
 from src.utilities import data_generation as dg
 
 
 class TestDataGeneration(unittest.TestCase):
+
     def test_cond_prob(self):
         test = dg.gummy_worm_dataset()
         delta = 0.25
@@ -40,3 +40,22 @@ class TestDataGeneration(unittest.TestCase):
             self.assertAlmostEqual(expected, result, delta=0.01)
         for result, expected in zip(true_prob1, rel_freq1):
             self.assertAlmostEqual(expected, result, delta=0.01)
+
+
+    def test_data_generation_is_idempotent(self):
+        datasets = [
+            dg.gummy_worm_dataset,
+            dg.imbalanced_gummy_worm_dataset,
+            dg.sad_clown_dataset,
+            dg.imbalanced_sad_clown_dataset
+        ]
+        for dataset in datasets:
+            with self.subTest(dataset):
+                data1 = dataset()
+                samples1, labels1 = data1.generate_data(2500)
+
+                data2 = dataset()
+                samples2, labels2 = data2.generate_data(2500)
+
+                np.testing.assert_array_equal(samples1, samples2)
+                np.testing.assert_array_equal(labels1, labels2)
