@@ -18,27 +18,22 @@ def calibration_error(pred_prob: np.ndarray, true_labels: np.ndarray, bin_bounda
     bin_lowers = bin_boundaries[:-1]
     bin_uppers = bin_boundaries[1:]
 
-    # get max probability per sample i
-    confidences = np.max(pred_prob, axis=1)
-    # get predictions from confidences (positional in this case)
-    predicted_label = np.argmax(pred_prob, axis=1)
-
-    # get a boolean list of correct/false predictions
+    confidences = pred_prob[:, 1]
+    predicted_label = (confidences > 0.5).astype(int)
     accuracies = predicted_label == true_labels
 
     calibration_error = 0.0
-    for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
-        # determine if sample is in bin m (between bin lower & upper)
-        in_bin = np.logical_and(confidences > bin_lower.item(), confidences <= bin_upper.item())
-        # can calculate the empirical probability of a sample falling into bin m: (|Bm|/n)
-        prob_in_bin = in_bin.mean()
 
-        if prob_in_bin.item() > 0:
-            # get the accuracy of bin m: acc(Bm)
-            accuracy_in_bin = accuracies[in_bin].mean()
-            # get the average confidence of bin m: conf(Bm)
-            avg_confidence_in_bin = confidences[in_bin].mean()
-            # calculate |acc(Bm) - conf(Bm)| * (|Bm|/n) for bin m and add to the total ECE
-            calibration_error += np.abs(avg_confidence_in_bin - accuracy_in_bin) * prob_in_bin
+    for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
+        samples_in_bin = (confidences > bin_lower) & (confidences <= bin_upper)
+
+        relative_samples_in_bin = samples_in_bin.mean()
+
+        if relative_samples_in_bin > 0:
+            accuracy_in_bin = accuracies[samples_in_bin].mean()
+            avg_confidence_in_bin = confidences[samples_in_bin].mean()
+
+            calibration_error += np.abs(avg_confidence_in_bin - accuracy_in_bin) * relative_samples_in_bin
+
     return calibration_error
     
