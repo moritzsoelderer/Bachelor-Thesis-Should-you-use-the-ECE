@@ -16,8 +16,9 @@ from src.metrics.ece import ece
 from src.metrics.fce import fce
 from src.metrics.ksce import ksce
 from src.metrics.tce import tce
-from src.metrics.true_ece import true_ece
-from src.utilities.datasets import imbalanced_gummy_worm_dataset
+from src.metrics.true_ece import true_ece, true_ece_binned
+from src.utilities import utils
+from src.utilities.datasets import imbalanced_gummy_worm_dataset, gummy_worm_dataset
 
 # predict distinction for tensorflow and sklearn
 predict_sklearn = lambda model, X_test: model.predict_proba(X_test)
@@ -28,13 +29,13 @@ def train_svm(X_train, y_train):
     svm_model.fit(X_train, y_train)
     return svm_model
 
-def train_neural_network(X_train, y_train):
+def train_neural_network(X_train, y_train, sample_dim):
     y_categorical = tf.keras.utils.to_categorical(y_train)
     model = tf.keras.Sequential()
     model.add(tf.keras.layers.Dense(50, activation="tanh"))
     model.add(tf.keras.layers.Dense(2, activation="softmax"))
     model.compile(optimizer="rmsprop", loss="categorical_crossentropy", metrics=["accuracy"])
-    model.fit(X_train.reshape(-1, 2), y_categorical, epochs=15, batch_size=1000)
+    model.fit(X_train.reshape(-1, sample_dim), y_categorical, epochs=15, batch_size=1000)
     return model
 
 
@@ -53,7 +54,6 @@ def train_random_forest(X_train, y_train):
 def process_model(test_sample, subsample_size, iteration_counter, true_probabilities, labels, fun):
     # Declare State Variables #
     metric_values = {
-        "True ECE": [],
         "ECE": [],
         "Balance Score": [],
         "FCE": [],
@@ -63,7 +63,6 @@ def process_model(test_sample, subsample_size, iteration_counter, true_probabili
     }
 
     means = {
-        "True ECE": [],
         "ECE": [],
         "Balance Score": [],
         "FCE": [],
@@ -73,7 +72,6 @@ def process_model(test_sample, subsample_size, iteration_counter, true_probabili
     }
 
     std_devs = {
-        "True ECE": [],
         "ECE": [],
         "Balance Score": [],
         "FCE": [],
@@ -88,7 +86,6 @@ def process_model(test_sample, subsample_size, iteration_counter, true_probabili
         # Filter by Subsample Indices #
         X_test = test_sample[subsample_indices]
         y_test = labels[subsample_indices]
-        true_probabilities_test = true_probabilities[subsample_indices]
 
         # Predict Probabilities #
         predicted_probabilities = fun[1](fun[0], X_test)
@@ -101,7 +98,6 @@ def process_model(test_sample, subsample_size, iteration_counter, true_probabili
         metric_values["KSCE"].append(ksce(predicted_probabilities, y_test))
         metric_values["TCE"].append(tce(predicted_probabilities, y_test, n_bin=15) / 100.0)
         metric_values["ACE"].append(ace(predicted_probabilities, y_test, 15))
-        metric_values["True ECE"].append(true_ece(predicted_probabilities, true_probabilities_test))
         metric_values["Balance Score"].append(np.abs(balance_score(predicted_probabilities, y_test)))
 
     print("   Calculating Means and Std Deviations...")
@@ -126,14 +122,21 @@ dataset_size = 40000
 iteration_counter = 20
 min_samples = 100
 max_samples = dataset_size/2
-step_size = 100
-subsample_sizes = np.arange(min_samples, max_samples + step_size, step_size)
+num_steps = 10
+subsample_sizes = np.linspace(min_samples, max_samples, num_steps, dtype=np.int64)
+
+# Adjust depending on dataset
+dataset = gummy_worm_dataset
+true_ece_samples = utils.sample_uniformly_within_bounds([0, -3], [15, 15], 200000) # other locs and scales for sad clown dataset
+samples_per_distribution = int(dataset_size/4)  # / 6 for sad clown dataset
+sample_dim = 2   # 3 for sad clown dataset
 
 def main():
+    datetime_start = datetime.now()
     # Generate Dataset #
     print("Generating Dataset")
-    data_generation = imbalanced_gummy_worm_dataset()
-    sample, labels = data_generation.generate_data(int(dataset_size/4))
+    data_generation = dataset()
+    sample, labels = data_generation.generate_data(samples_per_distribution)
     print("DEBUG: Sample Shape: ", sample.shape)
     print("DEBUG: Labels Shape: ", labels.shape)
 
@@ -152,7 +155,7 @@ def main():
     print(" Training SVM")
     svm = train_svm(train_sample, train_labels)
     print(" Training Neural Network")
-    neural_network = train_neural_network(train_sample, train_labels)
+    neural_network = train_neural_network(train_sample, train_labels, sample_dim)
     print(" Training Logistic Regression")
     logistic_regression = train_logistic_regression(train_sample, train_labels)
     print(" Training Random Forest")
@@ -174,26 +177,60 @@ def main():
         print("Model: ", model_name)
 
         means = {
-            "True ECE": [],
+            "True ECE (Binned)": [],
             "ECE": [],
             "Balance Score": [],
             "FCE": [],
             "KSCE": [],
             "TCE": [],
-            "ACE": []
+            "ACE": [],
+            "True ECE": []
         }
 
         std_devs = {
-            "True ECE": [],
+            "True ECE (Binned)": [],
             "ECE": [],
             "Balance Score": [],
             "FCE": [],
             "KSCE": [],
             "TCE": [],
-            "ACE": []
+            "ACE": [],
+            "True ECE": []
         }
 
-        # Train Model
+        # Calculate True ECE of model (approximation)
+        predictions = fun[1](fun[0], true_ece_samples)
+        true_probabilities = np.array([[1 - (p := data_generation.cond_prob(s, k=1)), p] for s in true_ece_samples])
+
+        # Plot probability masks
+        filename_probabilities = f"{data_generation.title}__{model_name}__Iterations_{iteration_counter}"
+        utils.plot_samples_probability_mask(true_ece_samples, predictions,
+                                            colorbar_label='Predicted Probability (Positive Class)',
+                                            title='Predicted Probabilities (Positive Class)',
+                                            save_path='./plots/varying_sample_size/' + filename_probabilities +
+                                                      '__Predicted_Probabilities__' + datetime_start.strftime('%Y%m%d_%H%M%S') + '.png')
+        utils.plot_samples_probability_mask(true_ece_samples, true_probabilities,
+                                            colorbar_label='True Probability (Positive Class)',
+                                            title='True Probabilities (Positive Class)',
+                                            save_path='./plots/varying_sample_size/' + filename_probabilities +
+                                                      '__True_Probabilities__' + datetime_start.strftime(
+                                                '%Y%m%d_%H%M%S') + '.png')
+        utils.plot_samples_probability_mask(true_ece_samples, np.abs(predictions - true_probabilities),
+                                            colorbar_label='Probability Difference (Positive Class)',
+                                            title='Difference Predicted and True Probabilities (Positive Class)',
+                                            save_path='./plots/varying_sample_size/' + filename_probabilities +
+                                                      '__Probabilitiy_Difference__' + datetime_start.strftime(
+                                                '%Y%m%d_%H%M%S') + '.png')
+
+        # True ECE does not deviate
+        means["True ECE"] = [true_ece(predictions, true_probabilities)] * num_steps
+        means["True ECE (Binned)"] = [true_ece_binned(predictions, true_probabilities, np.linspace(0, 1, 100))] * num_steps
+
+        # True ECE does not deviate
+        std_devs["True ECE"] = [0] * num_steps
+        std_devs["True ECE (Binned)"] = [0] * num_steps
+
+        # Calculate other Metrics
         results = Parallel(n_jobs=-1, verbose=10)(  # n_jobs=-1 uses all available CPUs
             delayed(process_model)(test_sample.copy(), subsample_size, iteration_counter, true_probabilities, test_labels.copy(), fun)
             for subsample_size in subsample_sizes
@@ -203,17 +240,23 @@ def main():
 
         print("DEBUG: Results Subsample Size: ", results[0], results[1], " : ", results[-2], results[-1])
 
-        # Persist Values #
-        filename_absolute = f"{data_generation.title}__{model_name}__Iterations_{iteration_counter}__AbsoluteValues__{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        with open('./data/varying_sample_size/' + filename_absolute + '.pkl', 'wb') as file:
-            pickle.dump(results, file)
-
         # Store Metric Values #
         for result in results:
             for metric, mean in result["means"].items():
                 means[metric].append(mean)
             for metric, std in result["std_devs"].items():
                 std_devs[metric].append(std)
+
+        # Persist Values #
+        pickle_object = {
+            "True Probabilities": true_probabilities,
+            "True ECE Predicted Probabilities": predictions,
+            "Means": means,
+            "Std Devs": std_devs
+        }
+        filename_absolute = f"{data_generation.title}__{model_name}__Iterations_{iteration_counter}__AbsoluteValues__{datetime_start.strftime('%Y%m%d_%H%M%S')}"
+        with open('./data/varying_sample_size/' + filename_absolute + '.pkl', 'wb') as file:
+            pickle.dump(pickle_object, file)
 
         # Plotting Absolute Mean and Std Deviation #
         print("   Plotting...")
@@ -236,7 +279,7 @@ def main():
 
         # Plotting Relative Mean and Std Deviation #
         print("   Plotting...")
-        filename_relative = f"{data_generation.title}__{model_name}__Iterations_{iteration_counter}__RelativeValues__{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        filename_relative = f"{data_generation.title}__{model_name}__Iterations_{iteration_counter}__RelativeValues__{datetime_start.strftime('%Y%m%d_%H%M%S')}"
         fig, ax = plt.subplots(figsize=(10, 6), dpi=150)
 
         for metric in means.keys():
