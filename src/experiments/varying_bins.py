@@ -206,7 +206,7 @@ def main():
         print("DEBUG: Results Bin Size: ", results[0], results[1], " : ", results[-2], results[-1])
 
         # Persist Values #
-        filename_absolute = f"SadClownDataset__{model_name}__Iterations_{iteration_counter}__AbsoluteValues__{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        filename_absolute = f"{data_generation.title}__{model_name}__Iterations_{iteration_counter}__AbsoluteValues__{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         with open('./data/varying_bins/' + filename_absolute + '.pkl', 'wb') as file:
             pickle.dump(results, file)
 
@@ -238,7 +238,7 @@ def main():
 
         # Plotting Relative Mean and Std Deviation #
         print("   Plotting...")
-        filename_relative = f"SadClownDataset__{model_name}__Iterations_{iteration_counter}__RelativeValues__{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        filename_relative = f"{data_generation.title}__{model_name}__Iterations_{iteration_counter}__RelativeValues__{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         fig, ax = plt.subplots(figsize=(10, 6), dpi=150)
 
         for metric in means.keys():
