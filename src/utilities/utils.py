@@ -1,4 +1,6 @@
 import numpy as np
+import scipy.stats as st
+from matplotlib import pyplot as plt, pyplot
 
 
 def check_scores(scores) -> None:
@@ -52,3 +54,35 @@ def check_binned_metric_params_probs(scores: np.ndarray[np.float32], true_prob: 
     check_scores(true_prob)
     check_shapes(scores, true_prob)
     return check_bins(n_bins)
+
+
+def sample_uniformly_within_bounds(locs: np.ndarray, scales: np.ndarray, size: int) -> np.ndarray:
+    locs = np.array(locs)
+    scales = np.array(scales)
+
+    if locs.shape != scales.shape:
+        raise ValueError("There must be just as much locations as scales")
+
+    return np.array([st.uniform(loc=loc, scale=scales[index]).rvs(size=size) for index, loc in enumerate(locs)]).T
+
+
+def plot_samples_probability_mask(
+        samples: np.ndarray, probs: np.ndarray,
+        colorbar_label: str, title: str, xlabel: str = 'feature 0', ylabel: str = 'feature 1',
+        show: bool = True, save_path: str = None
+) -> pyplot.figure:
+    plt.scatter(samples[:, 0], samples[:, 1], c=probs[:, 1], cmap='coolwarm_r', s=1)
+
+    plt.colorbar(label=colorbar_label)
+
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
+
+    if save_path is not None:
+        plt.savefig(save_path)
+    if show is True:
+        plt.show()
+
+    return plt
+
