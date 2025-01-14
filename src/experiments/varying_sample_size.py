@@ -1,8 +1,8 @@
+import pickle
 from datetime import datetime
 
 import numpy as np
 import tensorflow as tf
-import pickle
 from joblib import delayed, Parallel
 from matplotlib import pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
@@ -17,8 +17,7 @@ from src.metrics.fce import fce
 from src.metrics.ksce import ksce
 from src.metrics.tce import tce
 from src.metrics.true_ece import true_ece
-from src.qualitative_analysis import util
-from src.utilities.data_generation import gummy_worm_dataset, imbalanced_gummy_worm_dataset
+from src.utilities.datasets import imbalanced_gummy_worm_dataset
 
 # predict distinction for tensorflow and sklearn
 predict_sklearn = lambda model, X_test: model.predict_proba(X_test)

@@ -2,13 +2,14 @@ import unittest
 
 import numpy as np
 
+import src.utilities.datasets
 from src.utilities import data_generation as dg
 
 
 class TestDataGeneration(unittest.TestCase):
 
     def test_cond_prob(self):
-        test = dg.gummy_worm_dataset()
+        test = src.utilities.datasets.gummy_worm_dataset()
         delta = 0.25
 
         samples, labels = test.generate_data(50000)
@@ -44,10 +45,10 @@ class TestDataGeneration(unittest.TestCase):
 
     def test_data_generation_is_idempotent(self):
         datasets = [
-            dg.gummy_worm_dataset,
-            dg.imbalanced_gummy_worm_dataset,
-            dg.sad_clown_dataset,
-            dg.imbalanced_sad_clown_dataset
+            src.utilities.datasets.gummy_worm_dataset,
+            src.utilities.datasets.imbalanced_gummy_worm_dataset,
+            src.utilities.datasets.sad_clown_dataset,
+            src.utilities.datasets.imbalanced_sad_clown_dataset
         ]
         for dataset in datasets:
             with self.subTest(dataset):

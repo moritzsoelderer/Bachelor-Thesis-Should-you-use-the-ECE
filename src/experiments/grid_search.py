@@ -13,6 +13,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 
+from _search_modified import GridSearchWithEstimatorOutput
 from src.metrics.ace import ace
 from src.metrics.balance_score import balance_score
 from src.metrics.ece import ece
@@ -20,9 +21,7 @@ from src.metrics.fce import fce
 from src.metrics.ksce import ksce
 from src.metrics.tce import tce
 from src.metrics.true_ece import true_ece
-from src.qualitative_analysis import util
-from _search_modified import GridSearchWithEstimatorOutput
-from src.utilities.data_generation import gummy_worm_dataset
+from src.utilities.datasets import gummy_worm_dataset
 
 
 def svm_info():

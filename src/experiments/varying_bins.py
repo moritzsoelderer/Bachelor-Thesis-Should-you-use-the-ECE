@@ -17,7 +17,7 @@ from src.metrics.fce import fce
 from src.metrics.ksce import ksce
 from src.metrics.tce import tce
 from src.metrics.true_ece import true_ece
-from src.utilities.data_generation import gummy_worm_dataset, sad_clown_dataset
+from src.utilities.datasets import sad_clown_dataset
 
 # predict distinction for tensorflow and sklearn
 predict_sklearn = lambda model, X_test: model.predict_proba(X_test)
