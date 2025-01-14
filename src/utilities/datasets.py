@@ -1,6 +1,7 @@
 from scipy import stats as st
 
-from src.utilities.data_generation import DataGeneration, ClassObject, MixtureInformation
+from src.utilities.data_generation import DataGeneration
+from src.utilities.data_generation_utilities import MixtureInformation, ClassObject
 
 
 def gummy_worm_dataset() -> DataGeneration:
