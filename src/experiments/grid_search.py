@@ -74,7 +74,7 @@ def svm_info():
 def create_neural_network(optimizer='adam', activation='relu', neurons=12, layers=1, dropout_rate=0.2, learning_rate=0.001):
     model = Sequential()
 
-    model.add(Input(shape=(2,)))
+    model.add(Input(shape=(3,)))
     # Add input layer
     model.add(Dense(neurons, activation=activation))  # Input layer with `neurons` number of neurons
 
@@ -249,7 +249,7 @@ def sort_by_key_index(metric_values: dict, keyIndex: int, reverse: bool):
     return metric_values_sorted
 
 
-def plot_absolute_metrics(model_name, sorted_by, num_estimators, metric_values_sorted, datetime_now, sample_size, num_folds):
+def plot_absolute_metrics(dataset_name, model_name, sorted_by, num_estimators, metric_values_sorted, datetime_now, sample_size, num_folds):
     # Plotting Absolute Metrics #
     plt.figure(figsize=(18, 6), dpi=150)
     plt.title("Grid Search " + model_name + " - Estimators: " + str(num_estimators) + ", Folds: " + str(num_folds) + ", Sample Size: " + str(sample_size), fontsize=14, fontweight='bold')
@@ -269,11 +269,11 @@ def plot_absolute_metrics(model_name, sorted_by, num_estimators, metric_values_s
 
     plt.legend(loc='upper left', bbox_to_anchor=(1, 1))  # Position outside the top-right corner
     plt.tight_layout(pad=1.12)
-    filename = f"{model_name}__Samples_{sample_size}__Estimators_{x_values[-1]}__Folds_{num_folds}__AbsoluteValues__SortedBy_{sorted_by}__{datetime_now.strftime('%Y%m%d_%H%M%S')}.png"
+    filename = f"{dataset_name}__{model_name}__Samples_{sample_size}__Estimators_{x_values[-1]}__Folds_{num_folds}__AbsoluteValues__SortedBy_{sorted_by}__{datetime_now.strftime('%Y%m%d_%H%M%S')}.png"
     plt.savefig("./plots/grid_search/" + filename)
     plt.show()
 
-def plot_relative_metrics(model_name, sorted_by, num_estimators, metric_values_sorted, datetime_now, sample_size, num_folds):
+def plot_relative_metrics(dataset_name, model_name, sorted_by, num_estimators, metric_values_sorted, datetime_now, sample_size, num_folds):
     # Plotting Relative Metrics #
     plt.figure(figsize=(18, 6))
     plt.title("Grid Search " + model_name + " (Relative Values) " + "- Estimators: " + str(num_estimators) + ", Folds: " + str(num_folds) + ", Sample Size: " + str(sample_size), fontsize=14, fontweight='bold')
@@ -294,13 +294,13 @@ def plot_relative_metrics(model_name, sorted_by, num_estimators, metric_values_s
 
     plt.legend(loc='upper left', bbox_to_anchor=(1, 1))  # Position outside the top-right corner
     plt.tight_layout(pad=1.12)
-    filename = f"{model_name}__Samples_{sample_size}__Estimators_{x_values[-1]}__Folds_{num_folds}__RelativeValues__SortedBy_{sorted_by}__{datetime_now.strftime('%Y%m%d_%H%M%S')}.png"
+    filename = f"{dataset_name}__{model_name}__Samples_{sample_size}__Estimators_{x_values[-1]}__Folds_{num_folds}__RelativeValues__SortedBy_{sorted_by}__{datetime_now.strftime('%Y%m%d_%H%M%S')}.png"
     plt.savefig("./plots/grid_search/" + filename)
     plt.show()
 
 model_infos = {
-    #"SVM": svm_info,
-    #"Neural Network": neural_network_info,
+    "SVM": svm_info,
+    "Neural Network": neural_network_info,
     "Logistic Regression": logistic_regression_info,
     "Random Forest": random_forest_info
 }
@@ -351,7 +351,8 @@ def main():
         print("DEBUG: Persisting Results...")
         datetime_now = datetime.now()
         num_estimators = len(estimators)
-        pickle_filename = f"{model_name}__Samples_{sample_size}__Estimators_{num_estimators}__Folds_{num_folds}__AbsoluteValues__{datetime_now.strftime('%Y%m%d_%H%M%S')}"
+        dataset_name = data_generation.title
+        pickle_filename = f"{dataset_name}__SadClownDataset__{model_name}__Samples_{sample_size}__Estimators_{num_estimators}__Folds_{num_folds}__AbsoluteValues__{datetime_now.strftime('%Y%m%d_%H%M%S')}"
         with open('./data/grid_search/' + pickle_filename + '.pkl', 'wb') as file:
             pickle.dump(results, file)
 
@@ -379,8 +380,8 @@ def main():
         for index, sort_order in indices_and_sort_order:
             metric_values_sorted = sort_by_key_index(metric_values, index, reverse=sort_order)
             sorted_by = list(metric_values.keys())[index]
-            plot_absolute_metrics(model_name, sorted_by, num_estimators, metric_values_sorted, datetime_now, sample_size, num_folds)
-            plot_relative_metrics(model_name, sorted_by, num_estimators, metric_values_sorted, datetime_now, sample_size, num_folds)
+            plot_absolute_metrics(dataset_name, model_name, sorted_by, num_estimators, metric_values_sorted, datetime_now, sample_size, num_folds)
+            plot_relative_metrics(dataset_name, model_name, sorted_by, num_estimators, metric_values_sorted, datetime_now, sample_size, num_folds)
 
 
 
