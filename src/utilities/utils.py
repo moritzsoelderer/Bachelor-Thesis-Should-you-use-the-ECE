@@ -1,5 +1,5 @@
 import numpy as np
-import scipy.stats as st
+import tensorflow as tf
 from matplotlib import pyplot as plt, pyplot
 
 
@@ -56,14 +56,14 @@ def check_binned_metric_params_probs(scores: np.ndarray[np.float32], true_prob: 
     return check_bins(n_bins)
 
 
-def sample_uniformly_within_bounds(locs: np.ndarray, scales: np.ndarray, size: int) -> np.ndarray:
+def sample_uniformly_within_bounds(locs: np.ndarray, scales: np.ndarray, size: int, seed=1) -> np.ndarray:
     locs = np.array(locs)
     scales = np.array(scales)
 
     if locs.shape != scales.shape:
         raise ValueError("There must be just as much locations as scales")
 
-    return np.array([st.uniform(loc=loc, scale=scales[index]).rvs(size=size) for index, loc in enumerate(locs)]).T
+    return np.array([tf.random.uniform(shape=(size,), minval=loc, maxval=scales[index], seed=seed) for index, loc in enumerate(locs)]).T
 
 
 def plot_samples_probability_mask(

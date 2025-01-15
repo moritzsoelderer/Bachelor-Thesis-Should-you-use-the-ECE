@@ -18,7 +18,7 @@ from src.metrics.ksce import ksce
 from src.metrics.tce import tce
 from src.metrics.true_ece import true_ece, true_ece_binned
 from src.utilities import utils
-from src.utilities.datasets import imbalanced_gummy_worm_dataset, gummy_worm_dataset
+from src.utilities.datasets import imbalanced_gummy_worm_dataset
 
 # predict distinction for tensorflow and sklearn
 predict_sklearn = lambda model, X_test: model.predict_proba(X_test)
@@ -51,7 +51,7 @@ def train_random_forest(X_train, y_train):
     return model
 
 
-def process_model(test_sample, subsample_size, iteration_counter, true_probabilities, labels, fun):
+def process_model(test_sample, subsample_size, iteration_counter, labels, fun):
     # Declare State Variables #
     metric_values = {
         "ECE": [],
@@ -122,11 +122,11 @@ dataset_size = 40000
 iteration_counter = 20
 min_samples = 100
 max_samples = dataset_size/2
-num_steps = 10
+num_steps = 200
 subsample_sizes = np.linspace(min_samples, max_samples, num_steps, dtype=np.int64)
 
 # Adjust depending on dataset
-dataset = gummy_worm_dataset
+dataset = imbalanced_gummy_worm_dataset
 true_ece_samples = utils.sample_uniformly_within_bounds([0, -3], [15, 15], 200000) # other locs and scales for sad clown dataset
 samples_per_distribution = int(dataset_size/4)  # / 6 for sad clown dataset
 sample_dim = 2   # 3 for sad clown dataset
@@ -144,11 +144,7 @@ def main():
     train_sample, test_sample, train_labels, test_labels = train_test_split(sample, labels, test_size=0.5, train_size=0.5, random_state=42)
     print("DEBUG: Train Sample Shape: ", train_sample.shape)
     print("DEBUG: Test Sample Shape: ", test_sample.shape)
-    # Calculate true probabilties for test set (training set is not needed) #
-    print("Calculating True Probabilities")
-    true_probabilities = np.array(
-        [[data_generation.cond_prob(x, k=0), data_generation.cond_prob(x, k=1)] for x in test_sample])
-    print("DEBUG: True Probabilities Shape: ", true_probabilities.shape)
+    true_probabilities = np.array([[1 - (p := data_generation.cond_prob(s, k=1)), p] for s in true_ece_samples])
 
     # Instantiate and train models #
     print("Training Models")
@@ -200,7 +196,6 @@ def main():
 
         # Calculate True ECE of model (approximation)
         predictions = fun[1](fun[0], true_ece_samples)
-        true_probabilities = np.array([[1 - (p := data_generation.cond_prob(s, k=1)), p] for s in true_ece_samples])
 
         # Plot probability masks
         filename_probabilities = f"{data_generation.title}__{model_name}__Iterations_{iteration_counter}"
@@ -283,7 +278,7 @@ def main():
         fig, ax = plt.subplots(figsize=(10, 6), dpi=150)
 
         for metric in means.keys():
-            relative_means = np.array(means[metric]) - means["True ECE"]
+            relative_means = np.array(means[metric]) - means["True ECE (Binned)"]
             ax.plot(subsample_sizes, relative_means, label=metric)
             ax.fill_between(subsample_sizes, relative_means - np.array(std_devs[metric]), relative_means + np.array(std_devs[metric]), alpha=0.2)
         plt.subplots_adjust(left=0.15, right=0.95, top=0.9, bottom=0.25)
