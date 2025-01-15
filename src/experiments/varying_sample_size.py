@@ -17,8 +17,7 @@ from src.metrics.fce import fce
 from src.metrics.ksce import ksce
 from src.metrics.tce import tce
 from src.metrics.true_ece import true_ece, true_ece_binned
-from src.utilities import utils
-from src.utilities.datasets import imbalanced_gummy_worm_dataset
+from src.utilities import utils, datasets
 
 # predict distinction for tensorflow and sklearn
 predict_sklearn = lambda model, X_test: model.predict_proba(X_test)
@@ -126,7 +125,7 @@ num_steps = 200
 subsample_sizes = np.linspace(min_samples, max_samples, num_steps, dtype=np.int64)
 
 # Adjust depending on dataset
-dataset = imbalanced_gummy_worm_dataset
+dataset = datasets.gummy_worm_dataset
 true_ece_samples = utils.sample_uniformly_within_bounds([0, -3], [15, 15], 200000) # other locs and scales for sad clown dataset
 samples_per_distribution = int(dataset_size/4)  # / 6 for sad clown dataset
 sample_dim = 2   # 3 for sad clown dataset
@@ -227,7 +226,7 @@ def main():
 
         # Calculate other Metrics
         results = Parallel(n_jobs=-1, verbose=10)(  # n_jobs=-1 uses all available CPUs
-            delayed(process_model)(test_sample.copy(), subsample_size, iteration_counter, true_probabilities, test_labels.copy(), fun)
+            delayed(process_model)(test_sample.copy(), subsample_size, iteration_counter, test_labels.copy(), fun)
             for subsample_size in subsample_sizes
         )
 
@@ -241,6 +240,11 @@ def main():
                 means[metric].append(mean)
             for metric, std in result["std_devs"].items():
                 std_devs[metric].append(std)
+
+        print("DEBUG: Means ECE: ", means["ECE"])
+        print("DEBUG: Means ACE: ", means["ACE"])
+        print("DEBUG: Std Devs ECE: ", std_devs["ECE"])
+        print("DEBUG: Std Devs ACE: ", std_devs["ACE"])
 
         # Persist Values #
         pickle_object = {
