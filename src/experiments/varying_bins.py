@@ -110,8 +110,8 @@ iteration_counter = 20
 test_sample_size = 2000
 min_bins = 1
 max_bins = 2000
-step = 1
-binss = np.unique(np.logspace(min_bins, np.log10(max_bins), num=300, base=10, dtype=np.int64))
+num_steps = 200
+binss = np.unique(np.logspace(min_bins, np.log10(max_bins), num=num_steps, base=10, dtype=np.int64))
 num_steps = len(binss)
 sample_dim = 2
 samples_per_distribution = int(dataset_size/num_dists)
@@ -207,17 +207,28 @@ def main():
 
         logging.debug("Results Bin Size: %s, %s : %s, %s", results[0], results[1], results[-2], results[-1])
 
-        # Persist Values #
-        filename_absolute = f"{data_generation.title}__{model_name}__Iterations_{iteration_counter}__AbsoluteValues__{datetime_start.strftime('%Y%m%d_%H%M%S')}"
-        with open('./data/varying_bins/' + filename_absolute + '.pkl', 'wb') as file:
-            pickle.dump(results, file)
-
         # Store Metric Values #
         for result in results:
             for metric, mean in result["means"].items():
                 means[metric].append(mean)
             for metric, std in result["std_devs"].items():
                 std_devs[metric].append(std)
+
+        pickle_object = {
+            "True ECE Samples Dists": true_ece_samples_dists,
+            "True Probabilities Dists": true_probabilities_dists,
+            "True ECE Dists Predicted Probabilities": predictions_dists,
+            "True ECE Samples Grid": true_ece_samples_grid,
+            "True Probabilities Grid": true_probabilities_grid,
+            "True ECE Grid Predicted Probabilities": predictions_grid,
+            "Means": means,
+            "Std Devs": std_devs
+        }
+
+        # Persist Values #
+        filename_absolute = f"{data_generation.title}__{model_name}__Iterations_{iteration_counter}__AbsoluteValues__{datetime_start.strftime('%Y%m%d_%H%M%S')}"
+        with open('./data/varying_bins/' + filename_absolute + '.pkl', 'wb') as file:
+            pickle.dump(pickle_object, file)
 
         # Plotting Absolute Mean and Std Deviation #
         logging.info("   Plotting...")

@@ -219,8 +219,10 @@ def main():
 
         # Persist Values #
         pickle_object = {
+            "True ECE Samples Dists": true_ece_samples_dists,
             "True Probabilities Dists": true_probabilities_dists,
             "True ECE Dists Predicted Probabilities": predictions_dists,
+            "True ECE Samples Grid": true_ece_samples_grid,
             "True Probabilities Grid": true_probabilities_grid,
             "True ECE Grid Predicted Probabilities": predictions_grid,
             "Means": means,
