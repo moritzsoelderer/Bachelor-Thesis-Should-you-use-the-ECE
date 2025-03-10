@@ -1,18 +1,38 @@
+import numpy as np
 from scipy import stats as st
 
 from src.utilities.data_generation import DataGeneration
 from src.utilities.data_generation_utilities import MixtureInformation, ClassObject
+from src.utilities.gummy_worm_dataset_family import gummy_worm_parameters, gummy_worm_family_parameters
 
+def dataset_parametrized(dataset_parameters: dict) -> DataGeneration:
+    dist_info = dataset_parameters["dist_info"]
+    dists_and_classes = [
+        (
+            st.multivariate_normal(mean=info["mean"], cov=info["cov"], allow_singular=True, seed=info["seed"]),
+            info["class"]
+        )
+         for info in dist_info
+    ]
+
+    distinct_classes = np.unique([clazz for _, clazz in dists_and_classes])
+    class_objects = [
+        ClassObject([info[0] for info in dists_and_classes if info[1] == clazz], None)
+        for clazz in distinct_classes
+    ]
+
+    return DataGeneration(
+            class_objects,
+            n_uninformative_features=dataset_parameters["n_uninformative_features"],
+            title=dataset_parameters["title"]
+        )
 
 def gummy_worm_dataset() -> DataGeneration:
-    dist1_1 = st.multivariate_normal(mean=[10, 10], cov=1, allow_singular=True, seed=42)
-    dist1_2 = st.multivariate_normal(mean=[6, 2], cov=1.7, allow_singular=True, seed=13)
-    dist2_1 = st.multivariate_normal(mean=[7, 10], cov=1, allow_singular=True, seed=165)
-    dist2_2 = st.multivariate_normal(mean=[6, 6], cov=1.7, allow_singular=True, seed=37)
+    return dataset_parametrized(gummy_worm_parameters)
 
-    class_object1 = ClassObject([dist1_1, dist1_2], None)
-    class_object2 = ClassObject([dist2_1, dist2_2], None)
-    return DataGeneration([class_object1, class_object2], n_uninformative_features=0, title="GummyWorm Dataset")
+
+def gummy_worm_dataset_family() -> [DataGeneration]:
+    return [dataset_parametrized(parameters) for parameters in gummy_worm_family_parameters]
 
 
 def imbalanced_gummy_worm_dataset() -> DataGeneration:
