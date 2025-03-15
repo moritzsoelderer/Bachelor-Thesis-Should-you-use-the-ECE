@@ -97,6 +97,9 @@ class ClassObject:
                 self.samples[index] = samples
         return np.array(samples)
 
+    def get_n_distributions(self):
+        return len(self.distributions)
+
     @staticmethod
     def get_n_features(distribution, mixture_information):
         return len(distribution.mean) + mixture_information.features_before + mixture_information.features_after

@@ -10,7 +10,7 @@ from src.utilities.data_generation_utilities import ClassObject
 class DataGeneration:
     title: str
     classes = list[ClassObject]
-    n_informative_features: int
+    n_features: int
     n_uninformative_features: int
 
     samples: list[list] = None
@@ -22,14 +22,18 @@ class DataGeneration:
         if len(set(n_features_list)) != 1:
             raise ValueError("All class objects must have the same number of features")
         else:
-            self.n_informative_features = n_features_list[0]
+            self.n_features = n_features_list[0]
         self.classes = class_objects
         self.n_uninformative_features = n_uninformative_features
 
         if title is None:
-            self.title = "DG-" + str(self.n_informative_features) + "-" + str(self.n_uninformative_features)
+            self.title = "DG-" + str(self.n_features) + "-" + str(self.n_uninformative_features)
         else:
             self.title = str(title)
+
+
+    def get_n_distributions(self):
+        return sum([clazz.get_n_distributions() for clazz in self.classes])
 
     @staticmethod
     def random(title: str = None, n_classes: int = None, n_dists_per_class: int = None, n_informative_features: int = None, n_uninformative_features: int = None):
@@ -57,13 +61,13 @@ class DataGeneration:
     def cond_prob(self, x, k=0, round_to=0):
         if x is None:
             raise ValueError("x is required")
-        if len(x) < self.n_informative_features + self.n_uninformative_features:
+        if len(x) < self.n_features + self.n_uninformative_features:
             raise ValueError("x has to few features/components")
         if k > len(self.classes) - 1:
             raise ValueError("k is larger than number of classes")
 
         # slice to not consider uninformative features (if any)
-        x = x[:self.n_informative_features]
+        x = x[:self.n_features]
 
         denominator = sum([class_object.sum_pdfs(x) for class_object in self.classes])
         if denominator == 0:
@@ -117,9 +121,9 @@ class DataGeneration:
             raise ValueError("There are no samples - maybe you need to generate some data first")
         if self.labels is None:
             raise ValueError("There are no labels - maybe you need to generate some data first")
-        if axis1 > self.n_informative_features + self.n_uninformative_features - 1:
+        if axis1 > self.n_features + self.n_uninformative_features - 1:
             raise ValueError("axis1 exceeds number of features")
-        if axis2 > self.n_informative_features + self.n_uninformative_features - 1:
+        if axis2 > self.n_features + self.n_uninformative_features - 1:
             raise ValueError("axis2 exceeds number of features")
 
         if axis1_label is None:
@@ -159,11 +163,11 @@ class DataGeneration:
             raise ValueError("There are no samples - maybe you need to generate some data first")
         if self.labels is None:
             raise ValueError("There are no labels - maybe you need to generate some data first")
-        if axis1 > self.n_informative_features + self.n_uninformative_features - 1:
+        if axis1 > self.n_features + self.n_uninformative_features - 1:
             raise ValueError("axis1 exceeds number of features")
-        if axis2 > self.n_informative_features + self.n_uninformative_features - 1:
+        if axis2 > self.n_features + self.n_uninformative_features - 1:
             raise ValueError("axis2 exceeds number of features")
-        if axis3 > self.n_informative_features + self.n_uninformative_features - 1:
+        if axis3 > self.n_features + self.n_uninformative_features - 1:
             raise ValueError("axis3 exceeds number of features")
 
         if axis1_label is None:
