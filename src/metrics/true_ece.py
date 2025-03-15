@@ -38,17 +38,19 @@ def true_ece(scores, true_prob):
     return np.mean(true_ece_vals_per_pred_prob)
 
 
-def true_ece_binned(scores, true_prob, bin_boundaries) -> np.float32:
+def true_ece_binned(scores, true_prob, bin_boundaries):
     bin_lowers = bin_boundaries[:-1]
     bin_uppers = bin_boundaries[1:]
 
-    scores = scores[:, 1]
-    true_prob = true_prob[:, 1]
+    scores = np.array(scores)[:, 1]
+    true_prob = np.array(true_prob)[:, 1]
 
     calibration_error = 0.0
+    samples_in_bins = []
 
     for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
         samples_in_bin = (scores > bin_lower) & (scores <= bin_upper)
+        samples_in_bins = samples_in_bins + [sum(samples_in_bin)]
 
         relative_samples_in_bin = samples_in_bin.mean()
 
@@ -58,7 +60,8 @@ def true_ece_binned(scores, true_prob, bin_boundaries) -> np.float32:
 
             calibration_error += np.abs(avg_confidence_in_bin - true_prob_in_bin) * relative_samples_in_bin
 
-    return calibration_error
+
+    return calibration_error, samples_in_bins
 
 
 def calibration_error_summary(scores, labels, n_bins: np.ndarray, round_to=4):
