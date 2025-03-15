@@ -6,7 +6,8 @@ from matplotlib import pyplot as plt
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
-from src.experiments.util import train_neural_network, train_svm, train_logistic_regression, train_random_forest
+from src.experiments.util import train_neural_network, train_svm, train_logistic_regression, train_random_forest, \
+    predict_tf, predict_sklearn
 from src.metrics.ace import ace
 from src.metrics.balance_score import balance_score
 from src.metrics.ece import ece
@@ -133,6 +134,7 @@ def train_models(train_samples, train_labels, sample_dim):
 
     assert length == len(train_labels)
 
+    logging.info("Training Models")
     logging.info("Training SVM")
     svms = [train_svm(train_samples[index], train_labels[index]) for index in range(length)]
 
@@ -145,7 +147,12 @@ def train_models(train_samples, train_labels, sample_dim):
     logging.info("Training Random Forest")
     random_forests = [train_random_forest(train_samples[index], train_labels[index]) for index in range(length)]
 
-    return svms, neural_networks, logistic_regressions, random_forests
+    return {
+        "SVM": (svms, predict_sklearn),
+        "Neural Network": (neural_networks, predict_tf),
+        "Logistic Regression": (logistic_regressions, predict_sklearn),
+        "Random Forest": (random_forests, predict_sklearn)
+    }
 
 
 def flatten_results(results, means, std_devs):
@@ -174,3 +181,46 @@ def persist_to_pickle(true_ece_samples_dists, true_ece_samples_grid, true_probab
     }
     with open(savePath, 'wb') as file:
         pickle.dump(pickle_object, file)
+        
+    
+def plot_experiment(model_name, dataset_title, means, std_devs, subsample_sizes, filename_absolute, filename_relative):
+    # Plotting Absolute Mean and Std Deviation #
+    logging.info("Plotting...")
+    fig, ax = plt.subplots(figsize=(10, 6), dpi=150)
+
+    for metric in means.keys():
+        metric_means = np.array(means[metric])
+        print("Metric", metric)
+        ax.plot(subsample_sizes, metric_means, label=metric)
+        ax.fill_between(subsample_sizes, metric_means - np.array(std_devs[metric]),
+                        metric_means + np.array(std_devs[metric]), alpha=0.2)
+    plt.subplots_adjust(left=0.15, right=0.95, top=0.9, bottom=0.25)
+    plt.xlabel('Sample Size', fontsize=12)
+    plt.ylabel('Metric Values', fontsize=12)
+    plt.title(f'Varying Sample Size - {model_name}, {dataset_title} Family', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    plt.legend()
+    ax.grid(True, linestyle='--', alpha=0.6)
+
+    plt.savefig("./plots/varying_sample_size_dataset_family/" + filename_absolute + ".png")
+    plt.show()
+
+    # Plotting Relative Mean and Std Deviation #
+    logging.info("   Plotting...")
+    fig, ax = plt.subplots(figsize=(10, 6), dpi=150)
+
+    for metric in means.keys():
+        relative_means = np.array(means[metric]) - means["True ECE Grid (Binned - 100 Bins)"]
+        ax.plot(subsample_sizes, relative_means, label=metric)
+        ax.fill_between(subsample_sizes, relative_means - np.array(std_devs[metric]),
+                        relative_means + np.array(std_devs[metric]), alpha=0.2)
+    plt.subplots_adjust(left=0.15, right=0.95, top=0.9, bottom=0.25)
+    plt.xlabel('Sample Size', fontsize=12)
+    plt.ylabel('Metric Values (Relative to True ECE Grid (Binned - 100 Bins))', fontsize=12)
+    plt.title(f'Varying Sample Size - {model_name}, {dataset_title} Family', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    plt.legend()
+    ax.grid(True, linestyle='--', alpha=0.6)
+
+    plt.savefig("./plots/varying_sample_size_dataset_family/" + filename_relative + ".png")
+    plt.show()

@@ -4,7 +4,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 import tensorflow as tf
 
-from src.utilities import utils
+from src.utilities import utils, datasets
 
 EMPTY_METRIC_MEANS = {
     "True ECE Grid (Binned - 100 Bins)": [],
@@ -32,6 +32,14 @@ EMPTY_METRIC_STD_DEVS = {
     "True ECE Dists (Binned - 100 Bins)": [],
     "True ECE Dists (Binned - 15 Bins)": [],
     "Accuracy": []
+}
+
+DATASETS = {
+    "gummy_worm": (datasets.gummy_worm_dataset, ([-5, -5], [15, 15])),
+    "gummy_worm_imbalanced": (datasets.imbalanced_gummy_worm_dataset, ([-5, -5], [15, 15])),
+    "gummy_worm_family": (datasets.gummy_worm_dataset_family, ([-5, -5], [15, 15])),
+    "sad_clown": (datasets.sad_clown_dataset, ([], [])),
+    "sad_clown_imbalanced": (datasets.imbalanced_sad_clown_dataset, ([], []))  # bounds to be added for sad clown
 }
 
 # predict distinction for tensorflow and sklearn
