@@ -1,0 +1,176 @@
+import logging
+import pickle
+
+import numpy as np
+from matplotlib import pyplot as plt
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+
+from src.experiments.util import train_neural_network, train_svm, train_logistic_regression, train_random_forest
+from src.metrics.ace import ace
+from src.metrics.balance_score import balance_score
+from src.metrics.ece import ece
+from src.metrics.fce import fce
+from src.metrics.ksce import ksce
+from src.metrics.tce import tce
+from src.metrics.true_ece import true_ece_binned
+
+
+def process_model(estimators, test_samples, test_labelss, subsample_size, predict_proba_fun):
+    # Declare State Variables #
+    metric_values = {
+        "Accuracy": [],
+        "ECE": [],
+        "Balance Score": [],
+        "FCE": [],
+        "KSCE": [],
+        "TCE": [],
+        "ACE": []
+    }
+
+    means = {
+        "Accuracy": [],
+        "ECE": [],
+        "Balance Score": [],
+        "FCE": [],
+        "KSCE": [],
+        "TCE": [],
+        "ACE": []
+    }
+
+    std_devs = {
+        "Accuracy": [],
+        "ECE": [],
+        "Balance Score": [],
+        "FCE": [],
+        "KSCE": [],
+        "TCE": [],
+        "ACE": []
+    }
+
+    for index, estimator in enumerate(estimators):
+        test_sample = test_samples[index]
+        test_labels = test_labelss[index]
+
+        # Filter by Subsample Indices #
+        X_test = test_sample[:subsample_size]
+        y_test = test_labels[:subsample_size]
+
+        # Predict Probabilities #
+        predicted_probabilities = predict_proba_fun(estimator, X_test)
+        y_pred = np.argmax(predicted_probabilities, axis=1)
+        logging.debug("Predicted Probabilities Shape: %s", predicted_probabilities.shape)
+
+        # Calculate Metric Values #
+        logging.info("Evaluating Metrics...")
+        metric_values["ECE"].append(ece(predicted_probabilities, y_test, 15))
+        metric_values["FCE"].append(fce(predicted_probabilities, y_test, 15))
+        metric_values["KSCE"].append(ksce(predicted_probabilities, y_test))
+        metric_values["TCE"].append(tce(predicted_probabilities, y_test, n_bin=15) / 100.0)
+        metric_values["ACE"].append(ace(predicted_probabilities, y_test, 15))
+        metric_values["Balance Score"].append(np.abs(balance_score(predicted_probabilities, y_test)))
+        metric_values["Accuracy"].append(accuracy_score(y_test, y_pred))
+
+    logging.info("Calculating Means and Std Deviations...")
+    for metric, scores in metric_values.items():
+        means[metric] = np.mean(scores)
+        std_devs[metric] = np.std(scores)
+
+    logging.info("DEBUG: Result: %s", {
+        "Subsample Size": subsample_size,
+        "means": means,
+        "std_devs": std_devs
+    })
+    return {
+        "Subsample Size": subsample_size,
+        "means": means,
+        "std_devs": std_devs
+    }
+
+
+def calculate_true_ece_on_dists_and_grid(data_generation, dist_samples, estimator, predict_proba_fun, grid_samples, grid_true_prob, n_bins):
+    dist_true_prob = [[1 - (p := data_generation.cond_prob(s, k=1)), p] for s in dist_samples]
+
+    dist_predictions = predict_proba_fun(estimator, dist_samples)
+    grid_predictions = predict_proba_fun(estimator, grid_samples)
+
+    dist_true_ece, dist_bin_count = true_ece_binned(dist_predictions, dist_true_prob, np.linspace(0, 1, n_bins + 1))
+    grid_true_ece, grid_bin_count = true_ece_binned(grid_predictions, grid_true_prob, np.linspace(0, 1, n_bins + 1))
+
+    return grid_true_ece, grid_bin_count, dist_true_ece, dist_bin_count
+
+
+def plot_bin_count_histogram(bin_count, title):
+    print("Length Bin Count", len(bin_count))
+    bin_numbers = range(len(bin_count))
+
+    plt.bar(bin_numbers, bin_count, width=0.8, edgecolor='black', alpha=0.7)
+
+    plt.xlabel("Bin Number")
+    plt.ylabel("Sample Count")
+    plt.title(title)
+
+    plt.show()
+
+
+def generate_train_test_split(data_generation, samples_per_distribution, test_size, train_size, random_state):
+    sample, labels = data_generation.generate_data(samples_per_distribution)
+
+    logging.debug("Sample Shape: %s", sample.shape)
+    logging.debug("Labels Shape: %s", labels.shape)
+
+    train_sample, test_sample, train_labels, test_labels = train_test_split(sample, labels, test_size=test_size,
+                                                                            train_size=train_size, random_state=random_state)
+
+    logging.debug("Train Sample Shape: %s", train_sample.shape)
+    logging.debug("Test Sample Shape: %s", test_sample.shape)
+
+    return train_sample, test_sample, train_labels, test_labels
+
+
+def train_models(train_samples, train_labels, sample_dim):
+    length = len(train_samples)
+
+    assert length == len(train_labels)
+
+    logging.info("Training SVM")
+    svms = [train_svm(train_samples[index], train_labels[index]) for index in range(length)]
+
+    logging.info("Training Neural Network")
+    neural_networks = [train_neural_network(train_samples[index], train_labels[index], sample_dim) for index in range(length)]
+
+    logging.info("Training Logistic Regression")
+    logistic_regressions = [train_logistic_regression(train_samples[index], train_labels[index]) for index in range(length)]
+
+    logging.info("Training Random Forest")
+    random_forests = [train_random_forest(train_samples[index], train_labels[index]) for index in range(length)]
+
+    return svms, neural_networks, logistic_regressions, random_forests
+
+
+def flatten_results(results, means, std_devs):
+    # Store Metric Values #
+    for result in results:
+        for metric, mean in result["means"].items():
+            means[metric].append(mean)
+        for metric, std in result["std_devs"].items():
+            std_devs[metric].append(std)
+
+    logging.debug("Means ECE: %s", means["ECE"])
+    logging.debug("Means ACE: %s", means["ACE"])
+    logging.debug("Std Devs ECE: %s", std_devs["ECE"])
+    logging.debug("Std Devs ACE: %s", std_devs["ACE"])
+
+    return means, std_devs
+
+
+def persist_to_pickle(true_ece_samples_dists, true_ece_samples_grid, true_probabilities_grid, means, std_devs, savePath):
+    pickle_object = {
+        "True ECE Samples Dists": true_ece_samples_dists,
+        "True ECE Samples Grid": true_ece_samples_grid,
+        "True Probabilities Grid": true_probabilities_grid,
+        "Means": means,
+        "Std Devs": std_devs
+    }
+    with open(savePath, 'wb') as file:
+        pickle.dump(pickle_object, file)
