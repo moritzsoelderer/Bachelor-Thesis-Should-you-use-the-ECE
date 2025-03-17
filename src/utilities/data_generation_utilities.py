@@ -44,10 +44,10 @@ class MixtureInformation:
                 [np.append(sample, [self.features_after_value] * self.features_after) for sample in samples])
 
     def remove_after(self, samples: np.ndarray):
-        return np.array(samples[:len(samples) - self.features_after])
+        return np.array(samples[:, :(samples.shape[1] - self.features_after)])
 
     def remove_before(self, samples: np.ndarray):
-        return np.array(samples[self.features_before:])
+        return np.array(samples[:, self.features_before:])
 
     def trim(self, samples: np.ndarray):
         samples = self.remove_before(samples)
@@ -81,8 +81,9 @@ class ClassObject:
         self.samples = [[]] * len(distributions)
 
     def sum_pdfs(self, x):
-        return sum(
-            [self.distributions[i].pdf(self.mixture_information[i].trim(x)) for i in range(len(self.distributions))])
+        return np.sum(
+            [dist.pdf(self.mixture_information[index].trim(x)) for index, dist in enumerate(self.distributions)], axis=0
+        )
 
     def draw_samples(self, n_examples, index=None, overwrite=True):
         if index is None:

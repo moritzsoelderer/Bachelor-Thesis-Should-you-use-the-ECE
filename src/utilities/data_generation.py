@@ -61,22 +61,23 @@ class DataGeneration:
     def cond_prob(self, x, k=0, round_to=0):
         if x is None:
             raise ValueError("x is required")
-        if len(x) < self.n_features + self.n_uninformative_features:
-            raise ValueError("x has to few features/components")
+        if x.ndim == 1:
+            x = x.reshape(1, -1)
+        if x.shape[1] < self.n_features + self.n_uninformative_features:
+            raise ValueError("x has too few features/components")
         if k > len(self.classes) - 1:
             raise ValueError("k is larger than number of classes")
 
         # slice to not consider uninformative features (if any)
-        x = x[:self.n_features]
+        x = x[:, :self.n_features]
 
-        denominator = sum([class_object.sum_pdfs(x) for class_object in self.classes])
-        if denominator == 0:
-            return 0
-        nominator = self.classes[k].sum_pdfs(x)
+        denominators = np.sum([class_object.sum_pdfs(x) for class_object in self.classes], axis=0)
+        nominators = self.classes[k].sum_pdfs(x)
+        probs = np.where(denominators != 0, nominators / denominators, 0)
 
         if round_to != 0:
-            return round(nominator / denominator, round_to)
-        return nominator / denominator
+            return np.round(probs, round_to)
+        return probs
 
     def generate_data(self, n_examples: list[list[int]], classes=None, overwrite=True):
         if classes is None:
