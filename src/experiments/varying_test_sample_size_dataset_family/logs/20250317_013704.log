@@ -1,0 +1,11 @@
+MS-Varying Test Sample Size on Dataset Family -- 2025-03-17 01:37:04,555 - INFO - Received command line arguments: dataset_name=gummy_worm_family, dataset_size=40000, min_samples=100, max_samples20000, num_steps=200, true_ece_sample_size=100
+MS-Varying Test Sample Size on Dataset Family -- 2025-03-17 01:37:04,584 - INFO - Generating Dataset...
+MS-Varying Test Sample Size on Dataset Family -- 2025-03-17 01:38:30,586 - INFO - Training Models
+MS-Varying Test Sample Size on Dataset Family -- 2025-03-17 01:38:30,586 - INFO - Training SVM
+MS-Varying Test Sample Size on Dataset Family -- 2025-03-17 01:41:22,627 - INFO - Training Neural Network
+MS-Varying Test Sample Size on Dataset Family -- 2025-03-17 01:41:50,142 - INFO - Training Logistic Regression
+MS-Varying Test Sample Size on Dataset Family -- 2025-03-17 01:41:50,555 - INFO - Training Random Forest
+MS-Varying Test Sample Size on Dataset Family -- 2025-03-17 01:42:36,186 - INFO - Model: SVM
+MS-Varying Test Sample Size on Dataset Family -- 2025-03-17 01:42:39,303 - INFO - Model: Neural Network
+MS-Varying Test Sample Size on Dataset Family -- 2025-03-17 01:42:46,145 - INFO - Model: Logistic Regression
+MS-Varying Test Sample Size on Dataset Family -- 2025-03-17 01:42:47,781 - INFO - Model: Random Forest
