@@ -150,7 +150,7 @@ class DataGeneration:
         if savePath is not None:
             plt.savefig(fname=savePath)
         if show:
-            plt.show()
+            plt.show(block=False)
         return plt
 
     def scatter3d(self, axis1=0, axis2=1, axis3=2, axis1_label=None, axis2_label=None, axis3_label=None, vert_angle=20, azimute_angle=45, colormap=None, show=False, savePath=None):
@@ -200,7 +200,7 @@ class DataGeneration:
         if savePath is not None:
             plt.savefig(fname=savePath)
         if show:
-            plt.show()
+            plt.show(block=False)
         return plt
 
 

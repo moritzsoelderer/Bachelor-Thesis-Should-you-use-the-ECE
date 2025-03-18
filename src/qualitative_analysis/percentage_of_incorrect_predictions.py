@@ -57,31 +57,31 @@ for percentage in percentages:
 plt.scatter(percentages, ece_vals)
 plt.xlabel("percentage of incorrect predictions")
 plt.ylabel("ECE")
-plt.show()
+plt.show(block=False)
 print("ECE values: ", ece_vals)
 
 plt.scatter(percentages, ace_vals)
 plt.xlabel("percentage of incorrect predictions")
 plt.ylabel("ACE")
-plt.show()
+plt.show(block=False)
 print("ACE values: ", ace_vals)
 
 plt.scatter(percentages, ksce_vals)
 plt.xlabel("percentage of incorrect predictions")
 plt.ylabel("KSCE")
-plt.show()
+plt.show(block=False)
 print("KSCE values: ", ksce_vals)
 
 plt.scatter(percentages, tce_vals)
 plt.xlabel("percentage of incorrect predictions")
 plt.ylabel("TCE")
-plt.show()
+plt.show(block=False)
 print("TCE values: ", tce_vals)
 
 plt.scatter(percentages, fce_vals)
 plt.xlabel("percentage of incorrect predictions")
 plt.ylabel("FCE")
-plt.show()
+plt.show(block=False)
 print("FCE values: ", fce_vals)
 
 

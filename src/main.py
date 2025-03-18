@@ -38,14 +38,14 @@ for k in range(n_k):
         sample = dist.rvs(size=n_examples)
         samples.append(sample)
         plt.hist(sample, bins=int(n_examples / 10), label="class: " + str(k), color=plot_colors[k])
-        plt.show()
+        plt.show(block=False)
         plt.clf()
     dists.append(k_dists)
 
 # plotting all samples in one histogram
 for sample in samples:
     plt.hist(sample, bins=int(n_examples / 10), alpha=0.75)
-plt.show()
+plt.show(block=False)
 plt.clf()
 
 # is code producing reasonable conditional probabilities?

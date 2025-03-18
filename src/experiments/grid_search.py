@@ -270,7 +270,7 @@ def plot_absolute_metrics(dataset_name, model_name, sorted_by, num_estimators, m
     plt.tight_layout(pad=1.12)
     filename = f"{dataset_name}__{model_name}__Samples_{sample_size}__Estimators_{x_values[-1]}__Folds_{num_folds}__AbsoluteValues__SortedBy_{sorted_by}__{datetime_now.strftime('%Y%m%d_%H%M%S')}.png"
     plt.savefig("./plots/grid_search/" + filename)
-    plt.show()
+    plt.show(block=False)
 
 def plot_relative_metrics(dataset_name, model_name, sorted_by, num_estimators, metric_values_sorted, datetime_now, sample_size, num_folds):
     # Plotting Relative Metrics #
@@ -295,7 +295,7 @@ def plot_relative_metrics(dataset_name, model_name, sorted_by, num_estimators, m
     plt.tight_layout(pad=1.12)
     filename = f"{dataset_name}__{model_name}__Samples_{sample_size}__Estimators_{x_values[-1]}__Folds_{num_folds}__RelativeValues__SortedBy_{sorted_by}__{datetime_now.strftime('%Y%m%d_%H%M%S')}.png"
     plt.savefig("./plots/grid_search/" + filename)
-    plt.show()
+    plt.show(block=False)
 
 model_infos = {
     "SVM": svm_info,

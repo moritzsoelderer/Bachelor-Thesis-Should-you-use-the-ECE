@@ -24,7 +24,7 @@ def plot_pred_prob_dists(steps: np.array, samples: np.ndarray, calcProbs: callab
     plt.title(title)
     plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
     plt.tight_layout()
-    plt.show()
+    plt.show(block=False)
 
 
 def plot_true_prob_reliability_diagrams(steps: np.array, samples: np.ndarray, true_prob: np.ndarray, true_labels: np.array, calcProbs: callable, title: str = ""):
@@ -48,7 +48,7 @@ def plot_true_prob_reliability_diagrams(steps: np.array, samples: np.ndarray, tr
         plt.ylim(0, 1)
         plt.title("Reliability Diagram - " + title + " " + str(step))
         plt.legend(handles=handles, title="True Labels")
-        plt.show()
+        plt.show(block=False)
 
 
 def plot_true_prob_reliability_diagram(true_prob, pred_prob, true_labels, title="Reliability Diagram"):
@@ -66,7 +66,7 @@ def plot_true_prob_reliability_diagram(true_prob, pred_prob, true_labels, title=
     plt.ylim(0, 1)
     plt.title(title)
     plt.legend(handles=handles, title="True Labels")
-    plt.show()
+    plt.show(block=False)
 
 
 def calculate_metrics(steps, true_prob, true_labels, samples, calcProbs, log="Step"):
@@ -165,7 +165,7 @@ def plot_metrics(initial, steps, true_prob, true_labels, true_ece_vals, ece_vals
     plt.title(title)
     plt.legend(loc='upper left', bbox_to_anchor=(1, 1))  # Position outside the top-right corner
     plt.tight_layout()  # Adjust layout to prevent clipping
-    plt.show()
+    plt.show(block=False)
 
 
 def svm1_probs(samples, step):

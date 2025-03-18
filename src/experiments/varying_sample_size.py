@@ -249,7 +249,7 @@ def main():
         ax.grid(True, linestyle='--', alpha=0.6)
 
         plt.savefig("./plots/varying_sample_size/" + filename_absolute + ".png")
-        plt.show()
+        plt.show(block=False)
 
         # Plotting Relative Mean and Std Deviation #
         logging.info("   Plotting...")
@@ -269,7 +269,7 @@ def main():
         ax.grid(True, linestyle='--', alpha=0.6)
 
         plt.savefig("./plots/varying_sample_size/" + filename_relative + ".png")
-        plt.show()
+        plt.show(block=False)
 
 
 if __name__ == "__main__":

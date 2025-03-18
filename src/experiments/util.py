@@ -1,4 +1,5 @@
 import numpy as np
+from matplotlib import pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
@@ -44,7 +45,7 @@ DATASETS = {
 
 # predict distinction for tensorflow and sklearn
 predict_sklearn = lambda model, X_test: model.predict_proba(X_test)
-predict_tf = lambda model, X_test: model.predict(X_test)
+predict_tf = lambda model, X_test: model.predict(X_test, verbose=0)
 
 
 def train_svm(X_train, y_train):
@@ -59,7 +60,7 @@ def train_neural_network(X_train, y_train, sample_dim):
     model.add(tf.keras.layers.Dense(50, activation="tanh"))
     model.add(tf.keras.layers.Dense(2, activation="softmax"))
     model.compile(optimizer="rmsprop", loss="categorical_crossentropy", metrics=["accuracy"])
-    model.fit(X_train.reshape(-1, sample_dim), y_categorical, epochs=15, batch_size=1000)
+    model.fit(X_train.reshape(-1, sample_dim), y_categorical, epochs=15, batch_size=1000, verbose=0)
     return model
 
 
@@ -103,3 +104,15 @@ def plot_probability_masks(samples, true_prob, predictions, filename, date_time,
                                         show=show)
 
     return pred_prob_plot, true_prob_plot, prob_diff_plot
+
+
+def plot_bin_count_histogram(bin_count, title):
+    bin_numbers = range(len(bin_count))
+
+    plt.bar(bin_numbers, bin_count, width=0.8, edgecolor='black', alpha=0.7)
+
+    plt.xlabel("Bin Number")
+    plt.ylabel("Sample Count")
+    plt.title(title)
+
+    plt.show(block=False)

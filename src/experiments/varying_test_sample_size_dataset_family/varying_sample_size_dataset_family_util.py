@@ -101,19 +101,6 @@ def calculate_true_ece_on_dists_and_grid(data_generation, dist_samples, estimato
     return grid_true_ece, grid_bin_count, dist_true_ece, dist_bin_count
 
 
-def plot_bin_count_histogram(bin_count, title):
-    print("Length Bin Count", len(bin_count))
-    bin_numbers = range(len(bin_count))
-
-    plt.bar(bin_numbers, bin_count, width=0.8, edgecolor='black', alpha=0.7)
-
-    plt.xlabel("Bin Number")
-    plt.ylabel("Sample Count")
-    plt.title(title)
-
-    plt.show()
-
-
 def generate_train_test_split(data_generation, samples_per_distribution, test_size, train_size, random_state):
     sample, labels = data_generation.generate_data(samples_per_distribution)
 
@@ -203,7 +190,7 @@ def plot_experiment(model_name, dataset_title, means, std_devs, subsample_sizes,
     ax.grid(True, linestyle='--', alpha=0.6)
 
     plt.savefig("./plots/varying_sample_size_dataset_family/" + filename_absolute + ".png")
-    plt.show()
+    plt.show(block=False)
 
     # Plotting Relative Mean and Std Deviation #
     logging.info("   Plotting...")
@@ -223,4 +210,4 @@ def plot_experiment(model_name, dataset_title, means, std_devs, subsample_sizes,
     ax.grid(True, linestyle='--', alpha=0.6)
 
     plt.savefig("./plots/varying_sample_size_dataset_family/" + filename_relative + ".png")
-    plt.show()
+    plt.show(block=False)

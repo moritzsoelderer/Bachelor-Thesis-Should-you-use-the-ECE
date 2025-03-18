@@ -34,7 +34,7 @@ with (open(f'./varying_test_sample_size_dataset_family/data/{filename}.pkl', 'rb
     ax.grid(True, linestyle='--', alpha=0.6)
 
     #plt.savefig("./plots/varying_sample_size/" + filename + ".png")
-    plt.show()
+    plt.show(block=False)
 
     print("Std Dev 15 Bins", results["Std Devs"]["True ECE Dists (Binned - 15 Bins)"][0])
     print("Std Dev 100 Bins", results["Std Devs"]["True ECE Dists (Binned - 100 Bins)"][0])

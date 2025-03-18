@@ -82,7 +82,7 @@ def plot_samples_probability_mask(
     if save_path is not None:
         plt.savefig(save_path)
     if show is True:
-        plt.show()
+        plt.show(block=False)
 
     return plt
 

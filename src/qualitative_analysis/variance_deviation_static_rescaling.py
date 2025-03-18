@@ -34,13 +34,13 @@ variance_deviations = np.arange(max_negative_variance_deviation, max_positive_va
 
 # plot samples, conditional probabilities and labels (for testing purposes, can later be deleted)
 plt.hist(samples)
-plt.show()
+plt.show(block=False)
 plt.scatter(samples, true_prob[:, 0])
-plt.show()
+plt.show(block=False)
 plt.scatter(samples, true_prob[:, 1])
-plt.show()
+plt.show(block=False)
 plt.scatter(samples, true_labels)
-plt.show()
+plt.show(block=False)
 
 # plotting some of the conditional probabilities resulting from variance deviation of the underlying distribution (can be deleted later on)
 for deviation in np.arange(max_negative_variance_deviation, max_positive_variance_deviation, 1):
@@ -52,7 +52,7 @@ for deviation in np.arange(max_negative_variance_deviation, max_positive_varianc
     pred_prob = np.column_stack((1 - pdf_values, pdf_values))
     plt.scatter(samples, pred_prob[:, 1], label="variance: " + str(variance + deviation), s=4)
 plt.legend()
-plt.show()
+plt.show(block=False)
 
 # plotting some of the conditional probabilities resulting from variance deviation of the underlying distribution (can be deleted later on)
 for deviation in np.arange(max_negative_variance_deviation, max_positive_variance_deviation, 1):
@@ -75,7 +75,7 @@ for deviation in np.arange(max_negative_variance_deviation, max_positive_varianc
     plt.ylabel("True Probabilities")
     plt.title("Reliability Diagram - Variance: " + str(variance + deviation))
     plt.legend(handles=handles, title="True Labels")
-    plt.show()
+    plt.show(block=False)
 
 
 true_ece_vals = np.array([], dtype=np.float64)
