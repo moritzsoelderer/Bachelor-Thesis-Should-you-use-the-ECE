@@ -4,11 +4,11 @@
 pip install -r requirements.txt
 
 dataset_name="gummy_worm_family"
-dataset_size=1000
+dataset_size=40000
 min_samples=100
-max_samples=500
-num_steps=5
-true_ece_sample_size=100
+max_samples=20000
+num_steps=200
+true_ece_sample_size=400000
 
 python -m src.experiments.varying_test_sample_size_dataset_family.run_experiment \
             "$dataset_name" "$dataset_size" "$min_samples" "$max_samples" "$num_steps" "$true_ece_sample_size"

@@ -158,13 +158,15 @@ def flatten_results(results, means, std_devs):
     return means, std_devs
 
 
-def persist_to_pickle(true_ece_samples_dists, true_ece_samples_grid, true_probabilities_grid, means, std_devs, savePath):
+def persist_to_pickle(estimators, true_ece_samples_dists, true_ece_samples_grid, true_probabilities_grid, means, std_devs, subsample_sizes, savePath):
     pickle_object = {
+        "Estimators": estimators,
         "True ECE Samples Dists": true_ece_samples_dists,
         "True ECE Samples Grid": true_ece_samples_grid,
         "True Probabilities Grid": true_probabilities_grid,
         "Means": means,
-        "Std Devs": std_devs
+        "Std Devs": std_devs,
+        "Subsample Sizes": subsample_sizes
     }
     with open(savePath, 'wb') as file:
         pickle.dump(pickle_object, file)
@@ -189,7 +191,7 @@ def plot_experiment(model_name, dataset_title, means, std_devs, subsample_sizes,
     plt.legend()
     ax.grid(True, linestyle='--', alpha=0.6)
 
-    plt.savefig("./plots/varying_sample_size_dataset_family/" + filename_absolute + ".png")
+    plt.savefig("./plots/" + filename_absolute + ".png")
     plt.show(block=False)
 
     # Plotting Relative Mean and Std Deviation #
@@ -209,5 +211,5 @@ def plot_experiment(model_name, dataset_title, means, std_devs, subsample_sizes,
     plt.legend()
     ax.grid(True, linestyle='--', alpha=0.6)
 
-    plt.savefig("./plots/varying_sample_size_dataset_family/" + filename_relative + ".png")
+    plt.savefig("./plots/" + filename_relative + ".png")
     plt.show(block=False)

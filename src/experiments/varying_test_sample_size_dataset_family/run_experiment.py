@@ -1,3 +1,4 @@
+import os
 import sys
 from multiprocessing import freeze_support
 
@@ -18,10 +19,7 @@ if __name__ == "__main__":
     num_steps = int(arguments[5])
     true_ece_sample_size = int(arguments[6])
 
-    assert "family" in dataset_name
-
-    import os
-    import sys
+    assert "family" in dataset_name, ("This Experiment is only configured for dataset families")
 
     # Change working directory to the script's directory
     script_dir = os.path.dirname(os.path.abspath(__file__))
