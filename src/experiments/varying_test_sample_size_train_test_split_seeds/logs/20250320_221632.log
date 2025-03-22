@@ -1,0 +1,12 @@
+MS-Varying Test Sample Size with TrainTestSplit -- 2025-03-20 22:16:32,772 - INFO - Received command line arguments: dataset_name=gummy_worm, dataset_size=40000, min_samples=100, max_samples20000, num_steps=200, true_ece_sample_size=400000
+MS-Varying Test Sample Size with TrainTestSplit -- 2025-03-20 22:16:32,788 - INFO - Generating Dataset...
+MS-Varying Test Sample Size with TrainTestSplit -- 2025-03-20 22:20:39,959 - INFO - Training Models
+MS-Varying Test Sample Size with TrainTestSplit -- 2025-03-20 22:20:39,959 - INFO - Training Neural Network
+MS-Varying Test Sample Size with TrainTestSplit -- 2025-03-20 22:21:03,601 - INFO - Training Logistic Regression
+MS-Varying Test Sample Size with TrainTestSplit -- 2025-03-20 22:21:03,939 - INFO - Training Random Forest
+MS-Varying Test Sample Size with TrainTestSplit -- 2025-03-20 22:21:58,442 - INFO - Model: Neural Network
+MS-Varying Test Sample Size with TrainTestSplit -- 2025-03-20 23:55:13,732 - INFO - Executing Varying Test Sample Size on Neural Network on Gummy Worm Dataset family with (20000, 2) training sample shape, (20000, 2) max. test sample shape and 1 datasets in total... (this might take some time)
+MS-Varying Test Sample Size with TrainTestSplit -- 2025-03-21 05:05:55,857 - INFO - Plotting...
+MS-Varying Test Sample Size with TrainTestSplit -- 2025-03-21 05:05:56,681 - INFO -    Plotting...
+MS-Varying Test Sample Size with TrainTestSplit -- 2025-03-21 05:05:57,068 - INFO - Model: Logistic Regression
+MS-Varying Test Sample Size with TrainTestSplit -- 2025-03-21 06:23:50,028 - INFO - Executing Varying Test Sample Size on Logistic Regression on Gummy Worm Dataset family with (20000, 2) training sample shape, (20000, 2) max. test sample shape and 1 datasets in total... (this might take some time)
