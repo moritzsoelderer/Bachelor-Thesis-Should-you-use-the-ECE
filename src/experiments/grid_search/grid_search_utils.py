@@ -269,7 +269,7 @@ def plot_relative_metrics(dataset_name, model_name, sorted_by, num_estimators, m
     plt.figure(figsize=(18, 6))
     plt.title("Grid Search " + model_name + " (Relative Values) " + "- Estimators: " + str(num_estimators) + ", Folds: " + str(num_folds) + ", Sample Size: " + str(sample_size), fontsize=14, fontweight='bold')
     plt.xlabel(model_name + 's' + " (Sorted by: " + sorted_by + ")", fontsize=12)
-    plt.ylabel("Metrics (Relative to True ECE Grid (Binned - 100 Bins))", fontsize=12)
+    plt.ylabel(f"Metrics Relative to True ECE Grid (Binned - 100 Bins)", fontsize=12)
     plt.grid(True, linestyle='--', alpha=0.6)
 
     x_values = range(1, num_estimators + 1)
