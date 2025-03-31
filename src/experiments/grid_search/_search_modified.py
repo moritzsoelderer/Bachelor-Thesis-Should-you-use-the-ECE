@@ -1137,13 +1137,7 @@ class BaseSearchCV(MetaEstimatorMixin, BaseEstimator, metaclass=ABCMeta):
                     )
                 results["rank_%s" % key_name] = rank_result
 
-        def remove_every_nth_element(lst, d):
-            return [lst[i] for i in range(len(lst)) if i % d == 1]
-
-        # Remove duplicate estimators trained on different folds
-        distinct_estimators = remove_every_nth_element(out["estimator"], self.cv)
-
-        results["estimator"] = distinct_estimators
+        results["estimator"] = out["estimator"]
         _store("fit_time", out["fit_time"])
         _store("score_time", out["score_time"])
         # Store a list of param dicts at the key 'params'
