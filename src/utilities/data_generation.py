@@ -22,7 +22,7 @@ class DataGeneration:
         if len(set(n_features_list)) != 1:
             raise ValueError("All class objects must have the same number of features")
         else:
-            self.n_features = n_features_list[0]
+            self.n_features = n_features_list[0] + n_uninformative_features
         self.classes = class_objects
         self.n_uninformative_features = n_uninformative_features
 
