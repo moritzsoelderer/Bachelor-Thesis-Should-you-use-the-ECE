@@ -143,7 +143,6 @@ def train_models(train_samples, train_labels, sample_dim):
 
 
 def flatten_results(results, means, std_devs):
-    # Store Metric Values #
     for result in results:
         for metric, mean in result["means"].items():
             means[metric].append(mean)

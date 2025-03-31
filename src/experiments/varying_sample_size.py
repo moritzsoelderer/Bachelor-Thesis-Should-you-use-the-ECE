@@ -10,7 +10,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
 from src.experiments.util import train_neural_network, train_logistic_regression, train_random_forest, \
-    predict_sklearn, predict_tf, EMPTY_METRIC_MEANS, EMPTY_METRIC_STD_DEVS, plot_probability_masks, train_svm
+    predict_sklearn, predict_tf, EMPTY_METRIC_DICT, plot_probability_masks, train_svm
 from src.metrics.ace import ace
 from src.metrics.balance_score import balance_score
 from src.metrics.ece import ece
@@ -167,8 +167,8 @@ def main():
     for model_name, model_pred_fun_tuple in models.items():
         logging.info("Model: %s", model_name)
 
-        means = copy.deepcopy(EMPTY_METRIC_MEANS)
-        std_devs = copy.deepcopy(EMPTY_METRIC_STD_DEVS)
+        means = copy.deepcopy(EMPTY_METRIC_DICT)
+        std_devs = copy.deepcopy(EMPTY_METRIC_DICT)
 
         # Calculate True ECE of model (approximation)
         predictions_dists = model_pred_fun_tuple[1](model_pred_fun_tuple[0], true_ece_samples_dists)

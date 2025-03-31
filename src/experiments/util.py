@@ -7,21 +7,7 @@ import tensorflow as tf
 
 from src.utilities import utils, datasets
 
-EMPTY_METRIC_MEANS = {
-    "True ECE Grid (Binned - 100 Bins)": [],
-    "True ECE Grid (Binned - 15 Bins)": [],
-    "ECE": [],
-    "Balance Score": [],
-    "FCE": [],
-    "KSCE": [],
-    "TCE": [],
-    "ACE": [],
-    "True ECE Dists (Binned - 100 Bins)": [],
-    "True ECE Dists (Binned - 15 Bins)": [],
-    "Accuracy": []
-}
-
-EMPTY_METRIC_STD_DEVS = {
+EMPTY_METRIC_DICT = {
     "True ECE Grid (Binned - 100 Bins)": [],
     "True ECE Grid (Binned - 15 Bins)": [],
     "ECE": [],
