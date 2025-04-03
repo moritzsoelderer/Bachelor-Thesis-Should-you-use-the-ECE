@@ -111,7 +111,7 @@ def run(dataset_name, dataset_size, num_folds, true_ece_sample_size, test_size=0
         logging.info(f"Length Metric Values: {len(metric_values)}")
         logging.info(" Plotting...")
 
-        indices_and_sort_order = [(0, False), (1, True)]
+        indices_and_sort_order = [(-1, False), (0, True)]
         for index, sort_order in indices_and_sort_order:
             metric_values_sorted = sort_by_key_index(metric_values, index, reverse=sort_order)
             sorted_by = list(metric_values.keys())[index]
