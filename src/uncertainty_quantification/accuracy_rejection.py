@@ -4,29 +4,29 @@ from scipy.stats import entropy
 from sklearn.metrics import accuracy_score
 
 
-def accuracy_rejection(y_true: np.ndarray, pred_prob: np.ndarray, steps: int = None, strategy=None) -> [np.ndarray]:
-    assert y_true.shape[0] == pred_prob.shape[0], "true labels and predicted probabilities must have the same length"
+def accuracy_rejection(y_true: np.ndarray, p_pred: np.ndarray, steps: int = None, strategy=None) -> [np.ndarray]:
+    assert y_true.shape[0] == p_pred.shape[0], "true labels and predicted probabilities must have the same length"
     assert steps is not None, "steps must not be None"
 
-    positive_pred_prob = pred_prob[:, 1]
+    positive_p_pred = p_pred[:, 1]
 
     if strategy == "entropy":
-        entropies = entropy(pred_prob, axis=-1)
+        entropies = entropy(p_pred, axis=-1)
         indices = np.argsort(-entropies)
     elif strategy == "predictions":
-        min_distances = np.minimum(positive_pred_prob, 1-positive_pred_prob)
+        min_distances = np.minimum(positive_p_pred, 1-positive_p_pred)
         indices = np.argsort(-min_distances)
     else:
         raise ValueError(f"Unknown strategy {strategy} - must be one of ['entropy', 'predictions']")
 
-    sorted_y_true = y_true[indices]
-    sorted_positive_y_pred = (positive_pred_prob[indices] >= 0.5).astype(np.int64)
+    y_true_sorted = y_true[indices]
+    y_pred_1_sorted = (positive_p_pred[indices] >= 0.5).astype(np.int64)
 
-    rejection_steps = np.linspace(0, np.shape(pred_prob)[0], steps, endpoint=False, dtype=np.int64)
+    rejection_steps = np.linspace(0, np.shape(p_pred)[0], steps, endpoint=False, dtype=np.int64)
     rejection_rates = np.linspace(0, 1, steps)
 
     rejection_accuracies = np.array(
-        [accuracy_score(sorted_y_true[r:], sorted_positive_y_pred[r:]) for r in rejection_steps]
+        [accuracy_score(y_true_sorted[r:], y_pred_1_sorted[r:]) for r in rejection_steps]
     )
 
     return rejection_accuracies, rejection_rates

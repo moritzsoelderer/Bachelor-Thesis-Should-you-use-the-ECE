@@ -36,7 +36,7 @@ def run(dataset_name, dataset_size, num_folds, true_ece_sample_size, test_size=0
     dataset_info = DATASETS[dataset_name]
     data_generation = dataset_info[0]()
     num_dists = data_generation.get_n_distributions()
-    samples, labels = data_generation.generate_data(n_examples=int(dataset_size/4))
+    X, labels = data_generation.generate_data(n_examples=int(dataset_size/4))
 
     model_infos = {
         "SVM": svm_info,
@@ -45,18 +45,18 @@ def run(dataset_name, dataset_size, num_folds, true_ece_sample_size, test_size=0
         "Random Forest": random_forest_info
     }
 
-    X_train, X_test, y_train, y_test = train_test_split(samples, labels, test_size=test_size)
-    true_probabilities = np.array(
+    X_train, X_test, y_train, y_test = train_test_split(X, labels, test_size=test_size)
+    p_true = np.array(
         [[data_generation.cond_prob(x, k=0), data_generation.cond_prob(x, k=1)] for x in X_test])
 
-    true_ece_samples_dists, _ = data_generation.generate_data(
+    X_true_ece_dists, _ = data_generation.generate_data(
         n_examples=int(true_ece_sample_size / num_dists), overwrite=False
     )
-    true_ece_samples_grid = utils.sample_uniformly_within_bounds(
+    X_true_ece_grid = utils.sample_uniformly_within_bounds(
         locs=dataset_info[1][0], scales=dataset_info[1][1], size=true_ece_sample_size
     )
-    true_probabilities_dists = [[1 - (p := data_generation.cond_prob(s, k=1)), p] for s in true_ece_samples_dists]
-    true_probabilities_grid = [[1 - (p := data_generation.cond_prob(s, k=1)), p] for s in true_ece_samples_grid]
+    p_true_dists = [[1 - (p := data_generation.cond_prob(s, k=1)), p] for s in X_true_ece_dists]
+    p_true_grid = [[1 - (p := data_generation.cond_prob(s, k=1)), p] for s in X_true_ece_grid]
 
     for model_name, model_info in model_infos.items():
         logging.info(f"Model: {model_name}")
@@ -83,11 +83,11 @@ def run(dataset_name, dataset_size, num_folds, true_ece_sample_size, test_size=0
                 estimator=estimator,
                 X_test=X_test.copy(),
                 y_test=y_test.copy(),
-                p_true=true_probabilities.copy(),
-                X_dists=true_ece_samples_dists,
-                X_grid=true_ece_samples_grid,
-                p_dists_true=true_probabilities_dists,
-                p_grid_true=true_probabilities_grid
+                p_true=p_true.copy(),
+                X_dists=X_true_ece_dists,
+                X_grid=X_true_ece_grid,
+                p_dists_true=p_true_dists,
+                p_grid_true=p_true_grid
             )
             for index, estimator in enumerate(estimators)
         )

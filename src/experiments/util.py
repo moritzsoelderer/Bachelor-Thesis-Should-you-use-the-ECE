@@ -5,7 +5,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 import tensorflow as tf
 
-from src.utilities import utils, datasets
+from src.utilities import utils
+from src.data_generation import datasets
 
 EMPTY_METRIC_DICT = {
     "True ECE Grid (Binned - 100 Bins)": [],
@@ -62,34 +63,34 @@ def train_random_forest(X_train, y_train):
     return model
 
 
-def plot_probability_masks(samples, true_prob, predictions, filename, date_time, show=True, save_path=None):
+def plot_probability_masks(X, p_true, predictions, filename, date_time, show=True, save_path=None):
     formatted_date_time = date_time.strftime('%Y%m%d_%H%M%S')
     if save_path is not None:
-        pred_prob_path = save_path + filename + '__Predicted_Probabilities__' + formatted_date_time + '.png'
-        true_prob_path = save_path + filename + '__True_Probabilities__' + formatted_date_time + '.png'
+        p_pred_path = save_path + filename + '__Predicted_Probabilities__' + formatted_date_time + '.png'
+        p_true_path = save_path + filename + '__True_Probabilities__' + formatted_date_time + '.png'
         prob_diff_path = save_path + filename + '__Probabilitiy_Difference__' + formatted_date_time + '.png'
     else:
-        pred_prob_path = None
-        true_prob_path = None
+        p_pred_path = None
+        p_true_path = None
         prob_diff_path = None
 
-    pred_prob_plot = utils.plot_samples_probability_mask(samples, predictions,
+    p_pred_plot = utils.plot_samples_probability_mask(X, predictions,
                                         colorbar_label='Predicted Probability (Positive Class)',
                                         title='Predicted Probabilities (Positive Class)',
-                                        save_path=pred_prob_path,
+                                        save_path=p_pred_path,
                                         show=show)
-    true_prob_plot = utils.plot_samples_probability_mask(samples, true_prob,
+    p_true_plot = utils.plot_samples_probability_mask(X, p_true,
                                         colorbar_label='True Probability (Positive Class)',
                                         title='True Probabilities (Positive Class)',
-                                        save_path=true_prob_path,
+                                        save_path=p_true_path,
                                         show=show)
-    prob_diff_plot = utils.plot_samples_probability_mask(samples, np.abs(predictions - true_prob),
+    prob_diff_plot = utils.plot_samples_probability_mask(X, np.abs(predictions - p_true),
                                         colorbar_label='Probability Difference (Positive Class)',
                                         title='Difference Predicted and True Probabilities (Positive Class)',
                                         save_path=prob_diff_path,
                                         show=show)
 
-    return pred_prob_plot, true_prob_plot, prob_diff_plot
+    return p_pred_plot, p_true_plot, prob_diff_plot
 
 
 def plot_bin_count_histogram(bin_count, title):

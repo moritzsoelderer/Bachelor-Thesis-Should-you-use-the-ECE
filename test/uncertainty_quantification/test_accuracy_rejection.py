@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 
 from src.experiments.util import train_svm
 from src.uncertainty_quantification.accuracy_rejection import accuracy_rejection, plot_accuracy_rejection
-from src.utilities.datasets import gummy_worm_dataset
+from src.data_generation.datasets import gummy_worm_dataset
 
 
 class TestAccuracyRejection(unittest.TestCase):
@@ -17,12 +17,12 @@ class TestAccuracyRejection(unittest.TestCase):
         expected_rates = [0, 0.11111111, 0.22222222, 0.33333333, 0.44444444, 0.55555556,
                           0.66666667, 0.77777778, 0.88888889, 1]
 
-        samples, labels = gummy_worm_dataset().generate_data(10000)
-        X_train, X_test, y_train, y_test = train_test_split(samples, labels, test_size=0.2, random_state=42)
+        X, labels = gummy_worm_dataset().generate_data(10000)
+        X_train, X_test, y_train, y_test = train_test_split(X, labels, test_size=0.2, random_state=42)
 
-        pred_prob = train_svm(X_train, y_train).predict_proba(X_test)
+        p_pred = train_svm(X_train, y_train).predict_proba(X_test)
         rejection_accuracies, rejection_rates = accuracy_rejection(
-            y_test, pred_prob, steps=10, strategy="entropy"
+            y_test, p_pred, steps=10, strategy="entropy"
         )
         plot_accuracy_rejection(rejection_accuracies, rejection_rates)
         npt.assert_allclose(expected_accuracies, rejection_accuracies, rtol=1e-7, atol=1e-9)

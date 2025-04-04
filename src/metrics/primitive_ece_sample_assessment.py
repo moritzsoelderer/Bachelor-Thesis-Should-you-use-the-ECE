@@ -8,7 +8,7 @@ def approximate_optimal_ece(
         estimator,
         predict_proba_fun,
         test_sample: np.ndarray,
-        test_labels: np.ndarray,
+        y_true_test: np.ndarray,
         plateau_threshold: float,
         plateau_steps: int,
         min_sample_size: int,
@@ -24,10 +24,10 @@ def approximate_optimal_ece(
 
     iterations = 0
     current_sample = test_sample[:current_sample_size]
-    current_labels = test_labels[:current_sample_size]
-    pred_prob = predict_proba_fun(estimator, current_sample)
-    pred_labels = (np.array([p[1] for p in pred_prob]) >= 0.5).astype(int)
-    first_plateau_ece_value = ece(pred_prob, current_labels, n_bins=n_bins)
+    current_labels = y_true_test[:current_sample_size]
+    p_pred = predict_proba_fun(estimator, current_sample)
+    pred_labels = (np.array([p[1] for p in p_pred]) >= 0.5).astype(int)
+    first_plateau_ece_value = ece(p_pred, current_labels, n_bins=n_bins)
     min_sample_size_ece = first_plateau_ece_value
 
     ece_values = np.array([first_plateau_ece_value])
@@ -41,11 +41,11 @@ def approximate_optimal_ece(
 
         iterations += 1
         current_sample = test_sample[:current_sample_size]
-        current_labels = test_labels[:current_sample_size]
-        pred_prob = predict_proba_fun(estimator, current_sample)
-        pred_labels = (np.array([p[1] for p in pred_prob]) >= 0.5).astype(int)
+        current_labels = y_true_test[:current_sample_size]
+        p_pred = predict_proba_fun(estimator, current_sample)
+        pred_labels = (np.array([p[1] for p in p_pred]) >= 0.5).astype(int)
 
-        ece_value = ece(pred_prob, current_labels, n_bins=n_bins)
+        ece_value = ece(p_pred, current_labels, n_bins=n_bins)
         ece_values = np.append(ece_values, ece_value)
         sample_sizes = np.append(sample_sizes, current_sample_size)
         accuracy = accuracy_score(current_labels, pred_labels)
@@ -77,9 +77,9 @@ def approximate_optimal_ece(
 
     # optimal ece value
     optimal_sample = test_sample[:optimal_sample_size]
-    optimal_labels = test_labels[:optimal_sample_size]
-    pred_prob = predict_proba_fun(estimator, optimal_sample)
-    optimal_ece_value = ece(pred_prob, optimal_labels, n_bins=n_bins)
+    optimal_labels = y_true_test[:optimal_sample_size]
+    p_pred = predict_proba_fun(estimator, optimal_sample)
+    optimal_ece_value = ece(p_pred, optimal_labels, n_bins=n_bins)
 
     return optimal_ece_value, optimal_sample_size, iterations, ece_values, sample_sizes, first_plateau_sample_size, first_plateau_ece_value,
 

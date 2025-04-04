@@ -1,9 +1,9 @@
 import numpy as np
 from scipy import stats as st
 
-from src.utilities.data_generation import DataGeneration
-from src.utilities.data_generation_utilities import MixtureInformation, ClassObject
-from src.utilities.gummy_worm_dataset_family import gummy_worm_parameters, gummy_worm_family_parameters
+from src.data_generation.data_generation import DataGeneration
+from src.data_generation.data_generation_utilities import MixtureInformation, ClassObject
+from src.data_generation.gummy_worm_dataset_family import gummy_worm_parameters, gummy_worm_family_parameters
 
 def dataset_parametrized(dataset_parameters: dict) -> DataGeneration:
     dist_info = dataset_parameters["dist_info"]

@@ -17,7 +17,7 @@ from src.metrics.tce import tce
 from src.metrics.true_ece import true_ece_binned
 
 
-def process_model(estimators, test_samples, test_labelss, subsample_size, predict_proba_fun):
+def process_model(estimators, X_tests, y_true_tests, subsample_size, predict_proba_fun):
     # Declare State Variables #
     metric_values = {
         "Accuracy": [],
@@ -50,12 +50,8 @@ def process_model(estimators, test_samples, test_labelss, subsample_size, predic
     }
 
     for index, estimator in enumerate(estimators):
-        test_sample = test_samples[index]
-        test_labels = test_labelss[index]
-
-        # Filter by Subsample Indices #
-        X_test = test_sample[:subsample_size]
-        y_test = test_labels[:subsample_size]
+        X_test = X_tests[index][:subsample_size]
+        y_test = y_true_tests[index][:subsample_size]
 
         # Predict Probabilities #
         predicted_probabilities = predict_proba_fun(estimator, X_test)
@@ -89,50 +85,50 @@ def process_model(estimators, test_samples, test_labelss, subsample_size, predic
     }
 
 
-def calculate_true_ece_on_dists_and_grid(data_generation, dist_samples, estimator, predict_proba_fun, grid_samples, grid_true_prob, n_bins):
-    dist_true_prob = [[1 - (p := data_generation.cond_prob(s, k=1)), p] for s in dist_samples]
+def calculate_true_ece_on_dists_and_grid(data_generation, X_dist, estimator, predict_proba_fun, X_grid, p_true_grid, n_bins):
+    p_true_dist = [[1 - (p := data_generation.cond_prob(s, k=1)), p] for s in X_dist]
 
-    dist_predictions = predict_proba_fun(estimator, dist_samples)
-    grid_predictions = predict_proba_fun(estimator, grid_samples)
+    dist_predictions = predict_proba_fun(estimator, X_dist)
+    grid_predictions = predict_proba_fun(estimator, X_grid)
 
-    dist_true_ece, dist_bin_count = true_ece_binned(dist_predictions, dist_true_prob, np.linspace(0, 1, n_bins + 1))
-    grid_true_ece, grid_bin_count = true_ece_binned(grid_predictions, grid_true_prob, np.linspace(0, 1, n_bins + 1))
+    dist_true_ece, dist_bin_count = true_ece_binned(dist_predictions, p_true_dist, np.linspace(0, 1, n_bins + 1))
+    grid_true_ece, grid_bin_count = true_ece_binned(grid_predictions, p_true_grid, np.linspace(0, 1, n_bins + 1))
 
     return grid_true_ece, grid_bin_count, dist_true_ece, dist_bin_count
 
 
 def generate_train_test_split(data_generation, samples_per_distribution, test_size, train_size, random_state):
-    sample, labels = data_generation.generate_data(samples_per_distribution)
+    sample, y_true = data_generation.generate_data(samples_per_distribution)
 
     logging.debug("Sample Shape: %s", sample.shape)
-    logging.debug("Labels Shape: %s", labels.shape)
+    logging.debug("y_true Shape: %s", y_true.shape)
 
-    train_sample, test_sample, train_labels, test_labels = train_test_split(sample, labels, test_size=test_size,
+    train_sample, test_sample, y_true_train, y_true_test = train_test_split(sample, y_true, test_size=test_size,
                                                                             train_size=train_size, random_state=random_state)
 
     logging.debug("Train Sample Shape: %s", train_sample.shape)
     logging.debug("Test Sample Shape: %s", test_sample.shape)
 
-    return train_sample, test_sample, train_labels, test_labels
+    return train_sample, test_sample, y_true_train, y_true_test
 
 
-def train_models(train_samples, train_labels, sample_dim):
-    length = len(train_samples)
+def train_models(X_train, y_true_train, sample_dim):
+    length = len(X_train)
 
-    assert length == len(train_labels)
+    assert length == len(y_true_train)
 
     logging.info("Training Models")
     logging.info("Training SVM")
-    svms = [train_svm(train_samples[index], train_labels[index]) for index in range(length)]
+    svms = [train_svm(X_train[index], y_true_train[index]) for index in range(length)]
 
     logging.info("Training Neural Network")
-    neural_networks = [train_neural_network(train_samples[index], train_labels[index], sample_dim) for index in range(length)]
+    neural_networks = [train_neural_network(X_train[index], y_true_train[index], sample_dim) for index in range(length)]
 
     logging.info("Training Logistic Regression")
-    logistic_regressions = [train_logistic_regression(train_samples[index], train_labels[index]) for index in range(length)]
+    logistic_regressions = [train_logistic_regression(X_train[index], y_true_train[index]) for index in range(length)]
 
     logging.info("Training Random Forest")
-    random_forests = [train_random_forest(train_samples[index], train_labels[index]) for index in range(length)]
+    random_forests = [train_random_forest(X_train[index], y_true_train[index]) for index in range(length)]
 
     return {
         "SVM": (svms, predict_sklearn),
@@ -158,12 +154,12 @@ def flatten_results(results, means, std_devs):
     return means, std_devs
 
 
-def persist_to_pickle(estimators, true_ece_samples_dists, true_ece_samples_grid, true_probabilities_grid, means, std_devs, subsample_sizes, savePath):
+def persist_to_pickle(estimators, X_true_ece_dists, X_true_ece_grid, p_true_grid, means, std_devs, subsample_sizes, savePath):
     pickle_object = {
         "Estimators": estimators,
-        "True ECE Samples Dists": true_ece_samples_dists,
-        "True ECE Samples Grid": true_ece_samples_grid,
-        "True Probabilities Grid": true_probabilities_grid,
+        "True ECE Samples Dists": X_true_ece_dists,
+        "True ECE Samples Grid": X_true_ece_grid,
+        "True Probabilities Grid": p_true_grid,
         "Means": means,
         "Std Devs": std_devs,
         "Subsample Sizes": subsample_sizes

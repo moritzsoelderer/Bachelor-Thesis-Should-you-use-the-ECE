@@ -1,4 +1,4 @@
-MS-Varying Test Sample Size with TrainTestSplit -- 2025-03-20 22:16:32,772 - INFO - Received command line arguments: dataset_name=gummy_worm, dataset_size=40000, min_samples=100, max_samples20000, num_steps=200, true_ece_sample_size=400000
+MS-Varying Test Sample Size with TrainTestSplit -- 2025-03-20 22:16:32,772 - INFO - Received command line arguments: dataset_name=gummy_worm, dataset_size=40000, min_sample_size=100, max_sample_size20000, num_steps=200, true_ece_sample_size=400000
 MS-Varying Test Sample Size with TrainTestSplit -- 2025-03-20 22:16:32,788 - INFO - Generating Dataset...
 MS-Varying Test Sample Size with TrainTestSplit -- 2025-03-20 22:20:39,959 - INFO - Training Models
 MS-Varying Test Sample Size with TrainTestSplit -- 2025-03-20 22:20:39,959 - INFO - Training Neural Network
