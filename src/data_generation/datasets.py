@@ -84,3 +84,38 @@ def imbalanced_sad_clown_dataset() -> DataGeneration:
     )
     class_object2 = ClassObject([dist2_1, dist2_2], None)
     return DataGeneration([class_object1, class_object2], n_uninformative_features=0, title="Imbalanced SadClown Dataset")
+
+
+gummy_worm_hard_parameters = {
+    "title": "Gummy Worm Dataset",
+    "n_uninformative_features": 0,
+    "dist_info": [
+        {
+            "mean": [0, 1],
+            "cov": 0.65,
+            "seed": 42,
+            "class": 0
+        },
+        {
+            "mean": [1, 0],
+            "cov": 0.65,
+            "seed": 13,
+            "class": 0
+        },
+        {
+            "mean": [0, -1],
+            "cov": 0.75,
+            "seed": 165,
+            "class": 1
+        },
+        {
+            "mean": [-1, 0],
+            "cov": 0.75,
+            "seed": 37,
+            "class": 1
+        },
+    ]
+}
+
+def gummy_worm_dataset_hard() -> DataGeneration:
+    return dataset_parametrized(gummy_worm_hard_parameters)
