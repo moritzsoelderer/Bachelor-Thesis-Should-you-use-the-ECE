@@ -22,37 +22,37 @@ class MixtureInformation:
         if features_after_value is not None:
             self.features_after_value = abs(features_after_value)
 
-    def add_before(self, samples: np.ndarray):
+    def add_before(self, X: np.ndarray):
         if self.features_before_value is None:
             scale = np.abs(self.features_before_interval[1] - self.features_before_interval[0])
             shift = self.features_before_interval[0]
             np.random.seed(seed=self.seed)
-            uniform = np.array([np.append(scale * st.uniform.rvs(size=self.features_before) + shift, sample) for sample in samples])
+            uniform = np.array([np.append(scale * st.uniform.rvs(size=self.features_before) + shift, sample) for sample in X])
             return uniform
         else:
             return np.array(
-                [np.append([self.features_before_value] * self.features_before, sample) for sample in samples])
+                [np.append([self.features_before_value] * self.features_before, sample) for sample in X])
 
-    def add_after(self, samples: np.ndarray):
+    def add_after(self, X: np.ndarray):
         if self.features_after_value is None:
             scale = np.abs(self.features_after_interval[1] - self.features_after_interval[0])
             shift = self.features_after_interval[0]
             np.random.seed(seed=self.seed)
-            return np.array([np.append(sample, scale * st.uniform.rvs(size=self.features_after) + shift) for sample in samples])
+            return np.array([np.append(sample, scale * st.uniform.rvs(size=self.features_after) + shift) for sample in X])
         else:
             return np.array(
-                [np.append(sample, [self.features_after_value] * self.features_after) for sample in samples])
+                [np.append(sample, [self.features_after_value] * self.features_after) for sample in X])
 
-    def remove_after(self, samples: np.ndarray):
-        return np.array(samples[:, :(samples.shape[1] - self.features_after)])
+    def remove_after(self, X: np.ndarray):
+        return np.array(X[:, :(X.shape[1] - self.features_after)])
 
-    def remove_before(self, samples: np.ndarray):
-        return np.array(samples[:, self.features_before:])
+    def remove_before(self, X: np.ndarray):
+        return np.array(X[:, self.features_before:])
 
-    def trim(self, samples: np.ndarray):
-        samples = self.remove_before(samples)
-        samples = self.remove_after(samples)
-        return samples
+    def trim(self, X: np.ndarray):
+        X = self.remove_before(X)
+        X = self.remove_after(X)
+        return X
 
     @staticmethod
     def empty():
@@ -63,7 +63,7 @@ class ClassObject:
     distributions: list[rv_continuous]
     n_features: int
     mixture_information: list[MixtureInformation]
-    samples: list[list]
+    X: list[list]
 
     def __init__(self, distributions, mixture_information=None):
         if mixture_information is None:
@@ -78,7 +78,7 @@ class ClassObject:
             self.n_features = n_features_list[0]
         self.distributions = distributions
         self.mixture_information = mixture_information
-        self.samples = [[]] * len(distributions)
+        self.X = [[]] * len(distributions)
 
     def sum_pdfs(self, x):
         return np.sum(
@@ -91,12 +91,12 @@ class ClassObject:
         elif index > len(self.distributions):
             raise ValueError("index larger than number of distributions")
         else:
-            samples = self.distributions[index].rvs(n_examples)
-            samples = self.mixture_information[index].add_before(samples)
-            samples = self.mixture_information[index].add_after(samples)
+            X = self.distributions[index].rvs(n_examples)
+            X = self.mixture_information[index].add_before(X)
+            X = self.mixture_information[index].add_after(X)
             if overwrite:
-                self.samples[index] = samples
-        return np.array(samples)
+                self.X[index] = X
+        return np.array(X)
 
     def get_n_distributions(self):
         return len(self.distributions)

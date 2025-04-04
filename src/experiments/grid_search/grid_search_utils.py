@@ -193,10 +193,10 @@ def random_forest_info():
     param_grid = {
         'n_estimators': [100],  # Number of trees
         'max_depth': [None, 10, 20],  # Maximum depth of each tree
-        'min_samples_split': [2, 5],  # Minimum number of samples required to split an internal node
-        'min_samples_leaf': [2, 4],  # Minimum number of samples required to be at a leaf node
+        'min_samples_split': [2, 5],  # Minimum number of X required to split an internal node
+        'min_samples_leaf': [2, 4],  # Minimum number of X required to be at a leaf node
         'max_features': [2, 'sqrt', 'log2'],  # The number of features to consider for a split
-        'bootstrap': [True, False],  # Whether bootstrap samples are used when building trees
+        'bootstrap': [True, False],  # Whether bootstrap X are used when building trees
         'criterion': ['gini', 'entropy'],  # The function to measure the quality of a split
     }
     return model, param_grid
@@ -296,23 +296,23 @@ def process_model(accuracy, estimator, X_test, y_test, p_true, X_dists, X_grid, 
     logging.info(f"Predicting with model: {estimator}")
     logging.info(f"{X_test.shape}, {y_test.shape}, {p_true.shape}")
 
-    pred_prob = estimator.predict_proba(X_test)
-    pred_prob_dists = estimator.predict_proba(X_dists)
-    pred_prob_grid = estimator.predict_proba(X_grid)
+    p_pred = estimator.predict_proba(X_test)
+    p_pred_dists = estimator.predict_proba(X_dists)
+    p_pred_grid = estimator.predict_proba(X_grid)
 
     # Evaluate metrics
-    true_ece_dists_15bins, _ = true_ece_binned(pred_prob_dists, p_dists_true, np.linspace(0, 1, 15))
-    true_ece_dists_100bins, _ = true_ece_binned(pred_prob_dists, p_dists_true, np.linspace(0, 1, 100))
+    true_ece_dists_15bins, _ = true_ece_binned(p_pred_dists, p_dists_true, np.linspace(0, 1, 15))
+    true_ece_dists_100bins, _ = true_ece_binned(p_pred_dists, p_dists_true, np.linspace(0, 1, 100))
 
-    true_ece_grid_15bins, _ = true_ece_binned(pred_prob_grid, p_grid_true, np.linspace(0, 1, 15))
-    true_ece_grid_100bins, _ = true_ece_binned(pred_prob_grid, p_grid_true, np.linspace(0, 1, 100))
+    true_ece_grid_15bins, _ = true_ece_binned(p_pred_grid, p_grid_true, np.linspace(0, 1, 15))
+    true_ece_grid_100bins, _ = true_ece_binned(p_pred_grid, p_grid_true, np.linspace(0, 1, 100))
 
-    ece_score = ece(pred_prob, y_test, 15)
-    balance_score_score = np.abs(balance_score(pred_prob, y_test))
-    fce_score = fce(pred_prob, y_test, 15)
-    ksce_score = ksce(pred_prob, y_test)
-    tce_score = tce(pred_prob, y_test, n_bin=15) / 100.0
-    ace_score = ace(pred_prob, y_test, 15)
+    ece_score = ece(p_pred, y_test, 15)
+    balance_score_score = np.abs(balance_score(p_pred, y_test))
+    fce_score = fce(p_pred, y_test, 15)
+    ksce_score = ksce(p_pred, y_test)
+    tce_score = tce(p_pred, y_test, n_bin=15) / 100.0
+    ace_score = ace(p_pred, y_test, 15)
 
     # Store metric values
     return {

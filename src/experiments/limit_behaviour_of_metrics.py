@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
-from src.utilities import data_generation as dg
+from src.data_generation import data_generation as dg
 from src.metrics import true_ece
 
 # tracking execution time
@@ -39,15 +39,15 @@ for i in range(n_datasets):
     dataset = dg.DataGeneration.random(n_classes=n_classes, n_dists_per_class=n_dists_per_class,
                                        n_uninformative_features=n_uninformative_features,
                                        n_informative_features=n_informative_features)
-    samples, labels = dataset.generate_data(n_examples=n_examples_per_class_per_dist)
-    X_train, X_test, y_train, y_test = train_test_split(samples, labels, test_size=.3)
+    X, y_true = dataset.generate_data(n_examples=n_examples_per_class_per_dist)
+    X_train, X_test, y_train, y_test = train_test_split(X, y_true, test_size=.3)
     y_train = tf.keras.utils.to_categorical(y_train)
     y_test = tf.keras.utils.to_categorical(y_test)
 
     # print("Number of training examples: ", len(X_train))
     # print("Number of test examples: ", len(X_test))
-    # print("Number of training labels: ", len(y_train))
-    # print("Number of test labels: ", len(y_test))
+    # print("Number of training y_true: ", len(y_train))
+    # print("Number of test y_true: ", len(y_test))
 
     # train model
     model = tf.keras.Sequential()
@@ -57,9 +57,9 @@ for i in range(n_datasets):
     model.add(tf.keras.layers.Dense(50, activation="tanh"))  # maybe add layers
     model.add(tf.keras.layers.Dense(n_classes, activation="softmax"))
     model.compile(optimizer="rmsprop", loss="categorical_crossentropy", metrics=["accuracy"])
-    model.fit(X_train, y_train, epochs=15, batch_size=len(samples))
+    model.fit(X_train, y_train, epochs=15, batch_size=len(X))
 
-    # retrieve predictions, labels and true probabilities
+    # retrieve predictions, y_true and true probabilities
     predictions = model.predict(X_test)
     y_test = np.argmax(y_test, axis=1)
     p_test_true = np.array([[dataset.cond_prob(x, k=0), dataset.cond_prob(x, k=1)] for x in X_test])

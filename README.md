@@ -15,3 +15,13 @@ This repository includes a modified version of Scikit-learn.
 - The code contributed by Moritz Soelderer is licensed under the MIT License.
 
 See the `LICENSE.md` [here](./LICENSE.md) file for more details.
+
+## Nomenclature
+For the sake of consistency a uniform nomenclature/naming convention is ensured across this 
+repository. All source code, except third party code, should adhere to the following rules:
+
+- samples: `X_<additional_args>` (e.g. `X_test`)
+- true labels: `y_true_<additional_args>` (e.g. `y_true_test`)
+- predicted labels: `y_pred_<additional_args>` (e.g. `y_pred_test`)
+- predicted probabilities: `p_pred_<additional_args>` (e.g. `p_pred_test`)
+- true probabilities: `p_true_<additional_args>` (e.g. `p_true_test`)

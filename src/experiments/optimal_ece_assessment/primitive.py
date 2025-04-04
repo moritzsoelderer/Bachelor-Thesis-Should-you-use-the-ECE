@@ -7,17 +7,17 @@ from src.experiments.util import predict_sklearn, train_svm, train_neural_networ
 from src.metrics.ece import ece
 from src.metrics.primitive_ece_sample_assessment import approximate_optimal_ece
 from src.metrics.true_ece import true_ece_binned
-from src.utilities.datasets import gummy_worm_dataset
+from src.data_generation.datasets import gummy_worm_dataset
 
 
 dg = gummy_worm_dataset()
-samples, labels = dg.generate_data(n_examples=10000)
-X_train, X_test, y_train, y_test = train_test_split(samples, labels, test_size=0.25, random_state=42)
+X, labels = dg.generate_data(n_examples=10000)
+X_train, X_test, y_train, y_test = train_test_split(X, labels, test_size=0.25, random_state=42)
 
 # True ECE Stuff
-true_ece_samples, _ = dg.generate_data(n_examples=100000, overwrite=False)
-true_prob1 = dg.cond_prob(true_ece_samples, k=1)
-true_prob = [[1-p, p] for p in true_prob1]
+X_true_ece, _ = dg.generate_data(n_examples=100000, overwrite=False)
+p_true_1 = dg.cond_prob(X_true_ece, k=1)
+p_true = np.column_stack((1 - p_true_1, p_true_1))
 
 steps = 100
 n_bins = 15
@@ -37,9 +37,9 @@ for model_name, model_pred_fun_tuple in model_info.items():
         )
     )
 
-    true_ece_pred = model_pred_fun_tuple[1](model_pred_fun_tuple[0], true_ece_samples)
-    true_ece_val_100bins, _ = true_ece_binned(true_ece_pred, true_prob, np.linspace(0, 1, 100))
-    true_ece_val_15bins, _ = true_ece_binned(true_ece_pred, true_prob, np.linspace(0, 1, 15))
+    true_ece_pred = model_pred_fun_tuple[1](model_pred_fun_tuple[0], X_true_ece)
+    true_ece_val_100bins, _ = true_ece_binned(true_ece_pred, p_true, np.linspace(0, 1, 100))
+    true_ece_val_15bins, _ = true_ece_binned(true_ece_pred, p_true, np.linspace(0, 1, 15))
 
     print("Optimal Ece:", optimal_ece)
     print("Optimal Ece sample size:", optimal_sample_size)

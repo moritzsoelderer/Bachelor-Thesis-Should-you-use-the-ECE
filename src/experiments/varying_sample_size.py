@@ -18,7 +18,8 @@ from src.metrics.fce import fce
 from src.metrics.ksce import ksce
 from src.metrics.tce import tce
 from src.metrics.true_ece import true_ece_binned
-from src.utilities import utils, datasets
+from src.utilities import utils
+from src.data_generation import datasets
 
 datetime_start = datetime.now()
 
@@ -32,7 +33,7 @@ logging.basicConfig(
 )
 
 
-def process_model(test_sample, subsample_size, iteration_counter, labels, fun):
+def process_model(test_sample, subsample_size, iteration_counter, y_true, fun):
     # Declare State Variables #
     metric_values = {
         "Accuracy": [],
@@ -70,7 +71,7 @@ def process_model(test_sample, subsample_size, iteration_counter, labels, fun):
 
         # Filter by Subsample Indices #
         X_test = test_sample[subsample_indices]
-        y_test = labels[subsample_indices]
+        y_test = y_true[subsample_indices]
 
         # Predict Probabilities #
         predicted_probabilities = fun[1](fun[0], X_test)
@@ -107,15 +108,15 @@ def process_model(test_sample, subsample_size, iteration_counter, labels, fun):
 # Declare Metavariables #
 dataset_size = 40000
 iteration_counter = 20
-min_samples = 100
-max_samples = dataset_size/2
+min_sample_size = 100
+max_sample_size = dataset_size/2
 num_steps = 200
-subsample_sizes = np.linspace(min_samples, max_samples, num_steps, dtype=np.int64)
+subsample_sizes = np.linspace(min_sample_size, max_sample_size, num_steps, dtype=np.int64)
 
 # Adjust depending on dataset
 dataset = datasets.gummy_worm_dataset
 num_dists = 4
-true_ece_samples_grid = utils.sample_uniformly_within_bounds([0, -3], [15, 15], 200000) # [-15, -15, -20], [15, 15, 10], 20000000 for sad clown dataset
+X_true_ece_grid = utils.sample_uniformly_within_bounds([0, -3], [15, 15], 200000) # [-15, -15, -20], [15, 15, 10], 20000000 for sad clown dataset
 samples_per_distribution = int(dataset_size/num_dists)  # / 6 for sad clown dataset
 samples_per_distribution_true_ece_dists = int(200000/num_dists)
 sample_dim = 2   # 3 for sad clown dataset
@@ -125,16 +126,16 @@ def main():
     logging.info("Generating Dataset...")
 
     data_generation = dataset()
-    true_ece_samples_dists, _ = data_generation.generate_data(samples_per_distribution_true_ece_dists, overwrite=False)
-    true_probabilities_dists = np.array([[1 - (p := data_generation.cond_prob(s, k=1)), p] for s in true_ece_samples_dists])
-    true_probabilities_grid = np.array([[1 - (p := data_generation.cond_prob(s, k=1)), p] for s in true_ece_samples_grid])
+    X_true_ece_dists, _ = data_generation.generate_data(samples_per_distribution_true_ece_dists, overwrite=False)
+    p_true_dists = np.array([[1 - (p := data_generation.cond_prob(s, k=1)), p] for s in X_true_ece_dists])
+    p_true_grid = np.array([[1 - (p := data_generation.cond_prob(s, k=1)), p] for s in X_true_ece_grid])
 
-    sample, labels = data_generation.generate_data(samples_per_distribution)
+    sample, y_true = data_generation.generate_data(samples_per_distribution)
 
     logging.debug("Sample Shape: %s", sample.shape)
-    logging.debug("Labels Shape: %s", labels.shape)
+    logging.debug("y_true Shape: %s", y_true.shape)
 
-    train_sample, test_sample, train_labels, test_labels = train_test_split(sample, labels, test_size=0.5, train_size=0.5, random_state=42)
+    train_sample, test_sample, y_true_train, y_true_test = train_test_split(sample, y_true, test_size=0.5, train_size=0.5, random_state=42)
 
     logging.debug("Train Sample Shape: %s", train_sample.shape)
     logging.debug("Test Sample Shape: %s", test_sample.shape)
@@ -142,16 +143,16 @@ def main():
     logging.info("Training Models")
 
     logging.info("Training SVM")
-    svm = train_svm(train_sample, train_labels)
+    svm = train_svm(train_sample, y_true_train)
 
     logging.info("Training Neural Network")
-    neural_network = train_neural_network(train_sample, train_labels, sample_dim)
+    neural_network = train_neural_network(train_sample, y_true_train, sample_dim)
 
     logging.info("Training Logistic Regression")
-    logistic_regression = train_logistic_regression(train_sample, train_labels)
+    logistic_regression = train_logistic_regression(train_sample, y_true_train)
 
     logging.info("Training Random Forest")
-    random_forest = train_random_forest(train_sample, train_labels)
+    random_forest = train_random_forest(train_sample, y_true_train)
 
     models = {
         "SVM": (svm, predict_sklearn),
@@ -171,20 +172,20 @@ def main():
         std_devs = copy.deepcopy(EMPTY_METRIC_DICT)
 
         # Calculate True ECE of model (approximation)
-        predictions_dists = model_pred_fun_tuple[1](model_pred_fun_tuple[0], true_ece_samples_dists)
-        predictions_grid = model_pred_fun_tuple[1](model_pred_fun_tuple[0], true_ece_samples_grid)
+        predictions_dists = model_pred_fun_tuple[1](model_pred_fun_tuple[0], X_true_ece_dists)
+        predictions_grid = model_pred_fun_tuple[1](model_pred_fun_tuple[0], X_true_ece_grid)
 
         # Plot probability masks
         save_path = './plots/varying_sample_size/'
         filename_probabilities_grid = f"{data_generation.title}__{model_name}__Iterations_{iteration_counter}__Grid"
         filename_probabilities_dists = f"{data_generation.title}__{model_name}__Iterations_{iteration_counter}__Dists"
-        plot_probability_masks(true_ece_samples_grid, true_probabilities_grid, predictions_grid, filename_probabilities_grid, datetime_start, save_path=save_path)
-        plot_probability_masks(true_ece_samples_dists, true_probabilities_dists, predictions_dists, filename_probabilities_dists, datetime_start, save_path=save_path)
+        plot_probability_masks(X_true_ece_grid, p_true_grid, predictions_grid, filename_probabilities_grid, datetime_start, save_path=save_path)
+        plot_probability_masks(X_true_ece_dists, p_true_dists, predictions_dists, filename_probabilities_dists, datetime_start, save_path=save_path)
 
         # True ECE does not deviate
-        means["True ECE Dists (Binned)"] = [true_ece_binned(predictions_dists, true_probabilities_dists, np.linspace(0, 1, 100))] * num_steps
-        means["True ECE Dists (Binned - 15 Bins)"] = [true_ece_binned(predictions_dists, true_probabilities_dists, np.linspace(0, 1, 15))] * num_steps
-        means["True ECE Grid (Binned)"] = [true_ece_binned(predictions_grid, true_probabilities_grid, np.linspace(0, 1, 100))] * num_steps
+        means["True ECE Dists (Binned)"] = [true_ece_binned(predictions_dists, p_true_dists, np.linspace(0, 1, 100))] * num_steps
+        means["True ECE Dists (Binned - 15 Bins)"] = [true_ece_binned(predictions_dists, p_true_dists, np.linspace(0, 1, 15))] * num_steps
+        means["True ECE Grid (Binned)"] = [true_ece_binned(predictions_grid, p_true_grid, np.linspace(0, 1, 100))] * num_steps
 
         # True ECE does not deviate
         std_devs["True ECE Dists (Binned)"] = [0] * num_steps
@@ -197,7 +198,7 @@ def main():
         )
 
         results = Parallel(n_jobs=-1, verbose=10)(  # n_jobs=-1 uses all available CPUs
-            delayed(process_model)(test_sample.copy(), subsample_size, iteration_counter, test_labels.copy(), model_pred_fun_tuple)
+            delayed(process_model)(test_sample.copy(), subsample_size, iteration_counter, y_true_test.copy(), model_pred_fun_tuple)
             for subsample_size in subsample_sizes
         )
 
@@ -219,11 +220,11 @@ def main():
 
         # Persist Values #
         pickle_object = {
-            "True ECE Samples Dists": true_ece_samples_dists,
-            "True Probabilities Dists": true_probabilities_dists,
+            "True ECE Samples Dists": X_true_ece_dists,
+            "True Probabilities Dists": p_true_dists,
             "True ECE Dists Predicted Probabilities": predictions_dists,
-            "True ECE Samples Grid": true_ece_samples_grid,
-            "True Probabilities Grid": true_probabilities_grid,
+            "True ECE Samples Grid": X_true_ece_grid,
+            "True Probabilities Grid": p_true_grid,
             "True ECE Grid Predicted Probabilities": predictions_grid,
             "Means": means,
             "Std Devs": std_devs

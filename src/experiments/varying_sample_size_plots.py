@@ -3,10 +3,9 @@ import pickle
 import numpy as np
 from matplotlib import pyplot as plt
 
-filename = 'Gummy Worm Dataset__Logistic Regression__Gummy Worm Dataset Family__AbsoluteValues__20250311_015848'
-with (open(f'./varying_test_sample_size_dataset_family/data/{filename}.pkl', 'rb') as file):
+filename = 'GummyWorm Dataset__SVM__Iterations_20__AbsoluteValues__20250303_160650'
+with (open(f'./data/varying_sample_size/{filename}.pkl', 'rb') as file):
     results = pickle.load(file)
-    print(results)
 
     subsample_sizes = np.linspace(100, 20000, 200, dtype=np.int64)
 
@@ -31,6 +30,7 @@ with (open(f'./varying_test_sample_size_dataset_family/data/{filename}.pkl', 'rb
     plt.title(filename, fontsize=14, fontweight='bold')
     plt.tight_layout()
     plt.legend()
+    plt.ylim(0.003, 0.012)
     ax.grid(True, linestyle='--', alpha=0.6)
 
     #plt.savefig("./plots/varying_sample_size/" + filename + ".png")

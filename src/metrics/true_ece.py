@@ -9,41 +9,41 @@ from src.metrics.tce import tce
 from src.utilities.utils import *
 
 
-def true_ece(scores, true_prob):
-    check_scores(scores)
-    check_scores(true_prob)
-    check_shapes(scores, true_prob)
+def true_ece(y_pred, p_true):
+    check_y_pred(y_pred)
+    check_y_pred(p_true)
+    check_shapes(y_pred, p_true)
 
     # Convert inputs to numpy arrays and extract the relevant columns
-    scores = np.array(scores[:, 1])
-    true_prob = np.array(true_prob[:, 1])
+    scores = np.array(y_pred[:, 1])
+    p_true = np.array(p_true[:, 1])
 
-    # Sort scores and true_prob by scores
+    # Sort scores and p_true by scores
     sorted_indices = np.argsort(scores)
     scores = scores[sorted_indices]
-    true_prob = true_prob[sorted_indices]
+    p_true = p_true[sorted_indices]
 
     # Find unique scores and their corresponding indices
     unique_scores, inverse_indices = np.unique(scores, return_inverse=True)
 
     # Compute the mean true probability for each unique score
-    sum_true_prob = np.bincount(inverse_indices, weights=true_prob)
+    sum_p_true = np.bincount(inverse_indices, weights=p_true)
     count_per_score = np.bincount(inverse_indices)
-    mean_true_prob = sum_true_prob / count_per_score
+    mean_p_true = sum_p_true / count_per_score
 
     # Calculate the true ECE values per predicted probability
-    true_ece_vals_per_pred_prob = np.abs(mean_true_prob - unique_scores)
+    true_ece_vals_per_p_pred = np.abs(mean_p_true - unique_scores)
 
     # Compute the final true ECE value
-    return np.mean(true_ece_vals_per_pred_prob)
+    return np.mean(true_ece_vals_per_p_pred)
 
 
-def true_ece_binned(scores, true_prob, bin_boundaries):
+def true_ece_binned(scores, p_true, bin_boundaries):
     bin_lowers = bin_boundaries[:-1]
     bin_uppers = bin_boundaries[1:]
 
     scores = np.array(scores)[:, 1]
-    true_prob = np.array(true_prob)[:, 1]
+    p_true = np.array(p_true)[:, 1]
 
     calibration_error = 0.0
     samples_in_bins = []
@@ -55,17 +55,17 @@ def true_ece_binned(scores, true_prob, bin_boundaries):
         relative_samples_in_bin = samples_in_bin.mean()
 
         if relative_samples_in_bin > 0:
-            true_prob_in_bin = true_prob[samples_in_bin].mean()
+            p_true_in_bin = p_true[samples_in_bin].mean()
             avg_confidence_in_bin = scores[samples_in_bin].mean()
 
-            calibration_error += np.abs(avg_confidence_in_bin - true_prob_in_bin) * relative_samples_in_bin
+            calibration_error += np.abs(avg_confidence_in_bin - p_true_in_bin) * relative_samples_in_bin
 
 
     return calibration_error, samples_in_bins
 
 
-def calibration_error_summary(scores, labels, n_bins: np.ndarray, round_to=4):
-    check_metric_params(scores, labels)
+def calibration_error_summary(scores, y_true, n_bins: np.ndarray, round_to=4):
+    check_metric_params(scores, y_true)
 
     ece_vals = np.array([])
     fce_vals = np.array([])
@@ -76,20 +76,20 @@ def calibration_error_summary(scores, labels, n_bins: np.ndarray, round_to=4):
     for n_bin in n_bins:
         n_bin = check_bins(n_bin)
 
-        ece_vals = np.append(ece_vals, np.round(ece(scores, labels, n_bin), round_to))
-        fce_vals = np.append(fce_vals, np.round(fce(scores, labels, n_bin), round_to))
-        tce_vals_uniform = np.append(tce_vals_uniform, np.round(tce(scores, labels, n_bin=n_bin, strategy="uniform"), round_to))
-        tce_vals_pavabc = np.append(tce_vals_pavabc, np.round(tce(scores, labels, n_bin=n_bin, strategy="pavabc"), round_to))
-        ace_vals = np.append(ace_vals, np.round(ace(scores, labels, n_ranges=n_bin), round_to))
+        ece_vals = np.append(ece_vals, np.round(ece(scores, y_true, n_bin), round_to))
+        fce_vals = np.append(fce_vals, np.round(fce(scores, y_true, n_bin), round_to))
+        tce_vals_uniform = np.append(tce_vals_uniform, np.round(tce(scores, y_true, n_bin=n_bin, strategy="uniform"), round_to))
+        tce_vals_pavabc = np.append(tce_vals_pavabc, np.round(tce(scores, y_true, n_bin=n_bin, strategy="pavabc"), round_to))
+        ace_vals = np.append(ace_vals, np.round(ace(scores, y_true, n_ranges=n_bin), round_to))
 
-    ksce_val = np.round(ksce(scores, labels), round_to)
-    balance_score_val = np.round(balance_score(scores, labels), round_to)
+    ksce_val = np.round(ksce(scores, y_true), round_to)
+    balance_score_val = np.round(balance_score(scores, y_true), round_to)
 
     return np.array([ece_vals, fce_vals, tce_vals_uniform, tce_vals_pavabc, ace_vals]),  balance_score_val, ksce_val
 
 
-def print_calibration_error_summary_table(scores, labels, true_prob, n_bins: np.ndarray, round_to=4):
-    true_ece_val = true_ece(scores, true_prob)
+def print_calibration_error_summary_table(scores, labels, p_true, n_bins: np.ndarray, round_to=4):
+    true_ece_val = true_ece(scores, p_true)
     binned_metrics, balance_score_val, ksce_val = calibration_error_summary(scores, labels, n_bins, round_to=round_to)
 
     not_binned_metrics_data = {

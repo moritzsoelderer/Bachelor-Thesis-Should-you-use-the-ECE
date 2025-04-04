@@ -4,7 +4,7 @@ import scipy.stats as st
 from matplotlib.lines import Line2D
 from mpl_toolkits.mplot3d.art3d import Line3D
 
-from src.utilities.data_generation_utilities import ClassObject
+from src.data_generation.data_generation_utilities import ClassObject
 
 
 class DataGeneration:
@@ -13,7 +13,7 @@ class DataGeneration:
     n_features: int
     n_uninformative_features: int
 
-    samples: list[list] = None
+    X: list[list] = None
     labels: list = None
 
     def __init__(self, class_objects: list[ClassObject], n_uninformative_features: int = 0,
@@ -89,7 +89,7 @@ class DataGeneration:
         if len(n_examples) != len(classes):
             raise ValueError("Length on n_examples larger than number of classes to be considered")
 
-        samples = [[]]
+        X = [[]]
         labels = []
 
         for index in classes:
@@ -98,18 +98,18 @@ class DataGeneration:
                     n_examples=n_examples[index][class_index], index=class_index, overwrite=overwrite
                 )
                 if len(sample) != 0:
-                    samples.append(sample)
+                    X.append(sample)
                     labels += [index for _ in range(len(sample))]
 
         # flatten out sample list
-        samples = [s for sample in samples for s in sample]
+        X = [s for sample in X for s in sample]
         # add uninformative features
         if self.n_uninformative_features > 0:
-            samples = [np.append(sample, st.uniform.rvs(size=self.n_uninformative_features)) for sample in samples]
+            X = [np.append(sample, st.uniform.rvs(size=self.n_uninformative_features)) for sample in X]
         if overwrite:
-            self.samples = samples
+            self.X = X
             self.labels = labels
-        return np.array(samples), np.array(labels)
+        return np.array(X), np.array(labels)
 
     def scatter2d(self, axis1=0, axis2=1, axis1_label=None, axis2_label=None, colormap=None, show=False, savePath=None):
         if colormap is None:
@@ -118,8 +118,8 @@ class DataGeneration:
             diff = abs(len(self.classes) - len(colormap))
             for i in range(diff):
                 colormap = np.append(colormap, colormap[-1])
-        if self.samples is None:
-            raise ValueError("There are no samples - maybe you need to generate some data first")
+        if self.X is None:
+            raise ValueError("There are no X - maybe you need to generate some data first")
         if self.labels is None:
             raise ValueError("There are no labels - maybe you need to generate some data first")
         if axis1 > self.n_features + self.n_uninformative_features - 1:
@@ -134,7 +134,7 @@ class DataGeneration:
             axis2_label = "feature " + str(axis2)
 
         fig, ax = plt.subplots(figsize=(10, 8), dpi=150)
-        ax.scatter([s[axis1] for s in self.samples], [s[axis2] for s in self.samples], color=colormap[self.labels], s=0.9)
+        ax.scatter([s[axis1] for s in self.X], [s[axis2] for s in self.X], color=colormap[self.labels], s=0.9)
         plt.title(self.title, fontsize=14, fontweight='bold')
 
         plt.xlabel(axis1_label, fontsize=11)
@@ -160,8 +160,8 @@ class DataGeneration:
             diff = abs(len(self.classes) - len(colormap))
             for i in range(diff):
                 colormap = np.append(colormap, colormap[-1])
-        if self.samples is None:
-            raise ValueError("There are no samples - maybe you need to generate some data first")
+        if self.X is None:
+            raise ValueError("There are no X - maybe you need to generate some data first")
         if self.labels is None:
             raise ValueError("There are no labels - maybe you need to generate some data first")
         if axis1 > self.n_features + self.n_uninformative_features - 1:
@@ -182,7 +182,7 @@ class DataGeneration:
 
         fig = plt.figure(figsize=(9, 9), dpi=300)
         ax = fig.add_subplot(111, projection='3d')
-        ax.scatter([s[axis1] for s in self.samples], [s[axis2] for s in self.samples], [s[axis3] for s in self.samples], color=colormap[self.labels], s=0.9)
+        ax.scatter([s[axis1] for s in self.X], [s[axis2] for s in self.X], [s[axis3] for s in self.X], color=colormap[self.labels], s=0.9)
         ax.view_init(elev=vert_angle, azim=azimute_angle)
         plt.title(self.title, fontsize=24, fontweight='bold')
 
