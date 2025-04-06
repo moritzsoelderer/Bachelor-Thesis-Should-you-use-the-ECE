@@ -71,8 +71,8 @@ def run(dataset_name, dataset_size, min_sample_size, max_sample_size, num_steps,
     for model_name, model_pred_fun_tuple in models.items():
         logging.info("Model: %s", model_name)
 
-        filename_absolute = f"{data_generation.title}__{model_name}__{data_generation.title} Family__AbsoluteValues__{datetime_start.strftime('%Y%m%d_%H%M%S')}"
-        filename_relative = f"{data_generation.title}__{model_name}__{data_generation.title} Family__RelativeValues__{datetime_start.strftime('%Y%m%d_%H%M%S')}"
+        filename_absolute = f"{data_generation.title}__{model_name}__20_TrainTestSplits__AbsoluteValues__{datetime_start.strftime('%Y%m%d_%H%M%S')}"
+        filename_relative = f"{data_generation.title}__{model_name}__20_TrainTestSplits__RelativeValues__{datetime_start.strftime('%Y%m%d_%H%M%S')}"
         savePath = './data/' + filename_absolute + '.pkl'
 
         estimators = model_pred_fun_tuple[0]
@@ -117,8 +117,8 @@ def run(dataset_name, dataset_size, min_sample_size, max_sample_size, num_steps,
 
         ### Execution
         logging.info(
-            "Executing Varying Test Sample Size on %s on %s family with %s training sample shape, %s max. test sample shape and %s datasets in total... (this might take some time)",
-            model_name, data_generation.title, Xs_and_y_trues[0][0].shape, Xs_and_y_trues[0][1].shape, 1
+            "Executing Varying Test Sample Size on %s on %s with %s training sample shape, %s max. test sample shape and %s train-test-splits in total... (this might take some time)",
+            model_name, data_generation.title, Xs_and_y_trues[0][0].shape, Xs_and_y_trues[0][1].shape, len(estimators)
         )
 
         results = Parallel(n_jobs=-1, verbose=10)(  # n_jobs=-1 uses all available CPUs

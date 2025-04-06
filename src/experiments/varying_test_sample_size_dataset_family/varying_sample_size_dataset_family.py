@@ -64,10 +64,11 @@ def run(dataset_name, dataset_size, min_sample_size, max_sample_size, num_steps,
         )
         for data_generation in data_generations
     ]
-    X_train = [X_and_y_true[0] for X_and_y_true in Xs_and_y_trues]
-    X_test = [X_and_y_true[1] for X_and_y_true in Xs_and_y_trues]
-    y_true_train = [X_and_y_true[2] for samples_and_labels in sampless_and_labelss]
-    y_true_test = [samples_and_labels[3] for samples_and_labels in sampless_and_labelss]
+
+    X_train = np.array([X_and_y_true[0] for X_and_y_true in Xs_and_y_trues])
+    X_test = np.array([X_and_y_true[1] for X_and_y_true in Xs_and_y_trues])
+    y_true_train = np.array([X_and_y_true[2] for X_and_y_true in Xs_and_y_trues])
+    y_true_test = np.array([X_and_y_true[3] for X_and_y_true in Xs_and_y_trues])
 
     models = train_models(X_train, y_true_train,  sample_dim=data_generations[0].n_features)
 
@@ -122,7 +123,7 @@ def run(dataset_name, dataset_size, min_sample_size, max_sample_size, num_steps,
         ### Execution
         logging.info(
             "Executing Varying Test Sample Size on %s on %s family with %s training sample shape, %s max. test sample shape and %s datasets in total... (this might take some time)",
-            model_name, data_generations[0].title, sampless_and_labelss[0][0].shape, sampless_and_labelss[0][1].shape, len(data_generations)
+            model_name, data_generations[0].title, Xs_and_y_trues[0][0].shape, Xs_and_y_trues[0][1].shape, len(data_generations)
         )
 
         results = Parallel(n_jobs=-1, verbose=10)(  # n_jobs=-1 uses all available CPUs
@@ -136,7 +137,7 @@ def run(dataset_name, dataset_size, min_sample_size, max_sample_size, num_steps,
         means, std_devs = flatten_results(results, means, std_devs)
 
         ### Data Persistence
-        persist_to_pickle(X_true_ece_dists, X_true_ece_grid, p_true_grid, means, std_devs, savePath)
+        persist_to_pickle(estimators, X_true_ece_dists, X_true_ece_grid, p_true_grid, means, std_devs, subsample_sizes, savePath)
 
         ### Plots
         plot_experiment(model_name, data_generations[0].title, means, std_devs, subsample_sizes, filename_absolute, filename_relative)
