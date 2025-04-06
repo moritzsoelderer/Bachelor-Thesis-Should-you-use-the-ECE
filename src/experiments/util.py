@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
@@ -27,7 +29,9 @@ DATASETS = {
     "gummy_worm_imbalanced": (datasets.imbalanced_gummy_worm_dataset, ([-5, -5], [15, 15])),
     "gummy_worm_family": (datasets.gummy_worm_dataset_family, ([-5, -5], [15, 15])),
     "sad_clown": (datasets.sad_clown_dataset, ([], [])),
-    "sad_clown_imbalanced": (datasets.imbalanced_sad_clown_dataset, ([], []))  # bounds to be added for sad clown
+    "sad_clown_imbalanced": (datasets.imbalanced_sad_clown_dataset, ([], [])),  # bounds to be added for sad clown
+    "exclamation_mark": (datasets.exclamation_mark_dataset, ([-5, -5], [15, 15])),
+    "exclamation_mark_family": (datasets.exclamation_mark_dataset_family, ([-5, -5], [15, 15]))
 }
 
 # predict distinction for tensorflow and sklearn
@@ -63,7 +67,7 @@ def train_random_forest(X_train, y_train):
     return model
 
 
-def plot_probability_masks(X, p_true, predictions, filename, date_time, show=True, save_path=None):
+def plot_probability_masks(X, p_true, predictions, filename=None, date_time=datetime.now(), show=True, save_path=None):
     formatted_date_time = date_time.strftime('%Y%m%d_%H%M%S')
     if save_path is not None:
         p_pred_path = save_path + filename + '__Predicted_Probabilities__' + formatted_date_time + '.png'
@@ -95,11 +99,10 @@ def plot_probability_masks(X, p_true, predictions, filename, date_time, show=Tru
 
 def plot_bin_count_histogram(bin_count, title):
     bin_numbers = range(len(bin_count))
-
-    plt.bar(bin_numbers, bin_count, width=0.8, edgecolor='black', alpha=0.7)
-
+    plt.bar(bin_numbers, bin_count, width=0.8, color='red', alpha=0.7)
     plt.xlabel("Bin Number")
     plt.ylabel("Sample Count")
-    plt.title(title)
-
+    plt.title(title, fontsize=14, fontweight='bold')
+    plt.grid(True, linestyle='--', alpha=0.6)
     plt.show(block=False)
+
