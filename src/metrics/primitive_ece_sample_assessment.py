@@ -95,7 +95,6 @@ def find_first_plateau(sample_sizes, ece_values, plateau_threshold, plateau_step
         if index > max_index:
             raise Exception(f"Did not converge after {index - 1} iterations, min. delta = {delta}")
 
-        index += 1
         current_sample_size = sample_sizes[index]
         ece_value = ece_values[index]
         delta = np.abs(first_plateau_ece_value - ece_value)
@@ -109,7 +108,33 @@ def find_first_plateau(sample_sizes, ece_values, plateau_threshold, plateau_step
             first_plateau_sample_size = None
             is_plateau_count = 0
 
+        index += 1
+
     return first_plateau_sample_size, first_plateau_ece_value, index
+
+
+def approximate_optimal_ece_variable_threshold(
+        min_plateau_threshold: float,
+        max_plateau_threshold: float,
+        plateau_steps: int,
+        sample_sizes: np.ndarray,
+        ece_values: np.ndarray,
+        accuracies: float
+):
+    optimal_result = approximate_optimal_ece_sample_size(
+        max_plateau_threshold, plateau_steps, sample_sizes, ece_values, accuracies
+    )
+
+    current_threshold = max_plateau_threshold - 0.0001
+    while current_threshold >= min_plateau_threshold:
+        try:
+            optimal_result = approximate_optimal_ece_sample_size(
+                current_threshold, plateau_steps, sample_sizes, ece_values, accuracies
+            )
+        except Exception:
+            break
+        current_threshold -= 0.0001
+    return optimal_result
 
 
 def approximate_optimal_ece_sample_size(
@@ -128,13 +153,18 @@ def approximate_optimal_ece_sample_size(
     # gradient
     dx = np.abs(min_sample_size - first_plateau_sample_size)
     dy = np.abs(min_sample_size_ece - first_plateau_ece_value)
+    mean_accuracy = np.mean(accuracies)
 
     # factors
-    relative_ece_falloff = dy/min_sample_size_ece
-    ece_factor = np.sqrt(1 - (relative_ece_falloff - 1) ** 2)  # modified third quadrant of unit circle
+    ece_factor = np.sqrt(1 - np.abs(dy/min_sample_size_ece - 1) ** 1.75)  # modified third quadrant of unit circle
     sample_size_factor = 1 / (1 + np.exp(-(16 * first_plateau_sample_size/10000 - 8)))  # modified sigmoid
-    mean_accuracy = np.mean(accuracies)
-    accuracy_factor = 0.9 * mean_accuracy if mean_accuracy >= 0.9 else mean_accuracy ** 16
+
+    if mean_accuracy >= 0.85:
+        accuracy_factor = mean_accuracy
+    elif mean_accuracy >= 0.75:
+        accuracy_factor = mean_accuracy ** 2
+    else:
+        accuracy_factor = mean_accuracy ** 4
 
     optimal_sample_size = min_sample_size + int(ece_factor * dx * sample_size_factor * accuracy_factor)
 
