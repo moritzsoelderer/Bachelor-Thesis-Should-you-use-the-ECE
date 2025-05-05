@@ -7,11 +7,13 @@ import torch.nn.functional as F
 """
 This code is owned by Mohammad Hossein Shaker Ardakani, 
 the tutor for the bachelor thesis this codebase belongs to.
+
+It was modified by Moritz Sölderer at lines 16 and 28 to 33
 """
 
 
 class SyntheticDataGenerator:
-    def __init__(self, num_features=10, num_classes=2, hidden_layers=[32, 16], seed=42):
+    def __init__(self, num_features=10, num_classes=2, hidden_layers=[32, 16], seed=None):
         """
         Initialize the synthetic data generator.
 
@@ -23,10 +25,12 @@ class SyntheticDataGenerator:
         """
         self.num_features = num_features
         self.num_classes = num_classes
-        self.seed = seed
 
-        torch.manual_seed(seed)
-        np.random.seed(seed)
+        if seed is not None:
+            self.seed = seed
+
+            torch.manual_seed(seed)
+            np.random.seed(seed)
 
         # Define the neural network model
         layers = []
