@@ -75,6 +75,7 @@ def generate_ece_data(
     X, y, p_true = data_generator.generate_data(num_samples, temperature=temperature, mask_ratio=mask_ratio)
 
     ### Plot
+    """
     cmap = plt.cm.viridis  # or 'plasma', 'coolwarm', etc.
     norm = plt.Normalize(0, 1)
 
@@ -95,6 +96,7 @@ def generate_ece_data(
     ax.set_title('Scatter plot of X (colored by p_true)')
     plt.tight_layout()
     plt.show()
+    """
 
     # Split into train and test set
     X_train, X_test, y_p_train, y_p_test = train_test_split(X, list(zip(y, p_true)), test_size=0.25)
@@ -168,32 +170,26 @@ if __name__ == "__main__":
     )
 
     # Iterate
-    batch_iterations = 1  # 128 to achieve 12512 data points
-    batch_size = 4  # 24 to achieve 12512 data points
+    batch_iterations = 128  # 128 to achieve 12512 data points
+    batch_size = 24  # 24 to achieve 12512 data points
     for i in range(batch_iterations):
         with parallel_config(verbose=100):
-            results = Parallel(n_jobs=4, verbose=10)(  # n_jobs=-1 uses all available CPUs
+            results = Parallel(n_jobs=-1, verbose=10)(  # n_jobs=-1 uses all available CPUs
                 delayed(generate_ece_data)(num_samples, min_features, max_features, min_temperature, max_temperature,
                                            min_mask_ratio, max_mask_ratio)
                 for j in range(batch_size)
             )
 
-        file_path = f"./data/{datetime_start.strftime('%Y%m%d_%H%M%S')}.pkl"
+        dir_path = f"./data/{datetime_start.strftime('%Y%m%d_%H%M%S')}"
+        os.makedirs(dir_path, exist_ok=True)
+        file_path = f"{dir_path}/batch_{i}.pkl"
 
-        # Try to load existing pickle file
-        if os.path.exists(file_path):
-            with open(file_path, "rb") as f:
-                data = pickle.load(f)
-        else:
-            data = []
-
-        # Add new results to existing pickle data
-        new_data = data + results
-
-        # Overwrite pickle file
+        # Dump pickle file
         with open(file_path, "wb") as f:
-            pickle.dump(new_data, f)
+            pickle.dump(results, f)
 
         logging.info(
             f"Saved batch of length {len(results)} to file {file_path}"
         )
+
+
