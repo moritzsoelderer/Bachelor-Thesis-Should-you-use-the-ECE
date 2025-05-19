@@ -5,11 +5,10 @@ from datetime import datetime
 
 import numpy as np
 from joblib import Parallel, delayed, parallel_config
-from matplotlib import pyplot as plt
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
-import src.experiments.util as util
+import src.utilities.experiment_utils as util
 from src.experiments.optimal_ece_assessment.ml_approach import synthetic_data_generation as sdg
 from src.metrics.ece import ece
 from src.metrics.true_ece import true_ece_binned

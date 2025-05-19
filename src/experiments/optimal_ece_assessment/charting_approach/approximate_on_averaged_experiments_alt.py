@@ -8,7 +8,7 @@ from matplotlib.colors import Normalize
 
 import seaborn as sns
 
-from src.metrics.primitive_ece_sample_assessment import approximate_optimal_ece_sample_size, \
+from src.experiments.optimal_ece_assessment.charting_approach.approximate_optimal_ece import \
     approximate_optimal_ece_variable_threshold
 
 
@@ -60,7 +60,7 @@ nn_filename_exlamation_mark = dir + 'Exclamation Mark Dataset__Neural Network__2
 lr_filename_exlamation_mark = dir + 'Exclamation Mark Dataset__Logistic Regression__20_TrainTestSplits__AbsoluteValues__20250406_214431'
 rf_filename_exlamation_mark = dir + 'Exclamation Mark Dataset__Random Forest__20_TrainTestSplits__AbsoluteValues__20250408_023033'
 
-dir_family = '../varying_test_sample_size_dataset_family/data/'
+dir_family = '../../varying_test_sample_size_dataset_family/data/'
 svm_filename_family = dir_family + 'Gummy Worm Dataset__SVM__Gummy Worm Dataset Family__AbsoluteValues__20250405_032919'
 nn_filename_family = dir_family + 'Gummy Worm Dataset__Neural Network__Gummy Worm Dataset Family__AbsoluteValues__20250311_015848'
 lr_filename_family = dir_family + 'Gummy Worm Dataset__Logistic Regression__Gummy Worm Dataset Family__AbsoluteValues__20250311_015848'

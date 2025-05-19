@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 from matplotlib import pyplot as plt
 
-from src.metrics.primitive_ece_sample_assessment import approximate_optimal_ece_sample_size
+from src.experiments.optimal_ece_assessment.charting_approach.approximate_optimal_ece import approximate_optimal_ece_sample_size
 
 dir = '../varying_test_sample_size_train_test_split_seeds/data/'
 svm_filename = dir + "Gummy Worm Dataset__SVM__20_TrainTestSplits__AbsoluteValues__20250318_220436"
@@ -13,7 +13,7 @@ rf_filename = dir + 'Gummy Worm Dataset__Random Forest__20_TrainTestSplits__Abso
 svm_filename_exlamation_mark = dir + 'Exclamation Mark Dataset__SVM__Exclamation Mark Dataset Family__AbsoluteValues__20250405_200029'
 nn_filename_exlamation_mark = dir + 'Exclamation Mark Dataset__Neural Network__Exclamation Mark Dataset Family__AbsoluteValues__20250406_143851'
 
-dir_family = '../varying_test_sample_size_dataset_family/data/'
+dir_family = '../../varying_test_sample_size_dataset_family/data/'
 svm_filename_family = dir_family + 'Gummy Worm Dataset__SVM__Gummy Worm Dataset Family__AbsoluteValues__20250405_032919'
 nn_filename_family = dir_family + 'Gummy Worm Dataset__Neural Network__Gummy Worm Dataset Family__AbsoluteValues__20250311_015848'
 lr_filename_family = dir_family + 'Gummy Worm Dataset__Logistic Regression__Gummy Worm Dataset Family__AbsoluteValues__20250311_015848'

@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
-from src.experiments.util import train_neural_network, train_svm, train_logistic_regression, train_random_forest, \
+from src.utilities.experiment_utils import train_neural_network, train_svm, train_logistic_regression, train_random_forest, \
     predict_tf, predict_sklearn
 from src.metrics.ace import ace
 from src.metrics.balance_score import balance_score

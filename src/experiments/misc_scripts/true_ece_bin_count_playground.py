@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 from data_generation import datasets
-from src.experiments.util import train_svm, train_neural_network, train_logistic_regression, train_random_forest, \
+from src.utilities.experiment_utils import train_svm, train_neural_network, train_logistic_regression, train_random_forest, \
     predict_sklearn, predict_tf, plot_bin_count_histogram, plot_probability_masks
 from src.metrics.true_ece import true_ece_binned
 from src.utilities.utils import sample_uniformly_within_bounds

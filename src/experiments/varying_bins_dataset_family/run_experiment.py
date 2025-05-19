@@ -2,7 +2,7 @@ import os
 import sys
 from multiprocessing import freeze_support
 
-from src.experiments.varying_bins.varying_bins_dataset_family import run
+from src.experiments.varying_bins_dataset_family.varying_bins_dataset_family import run
 
 if __name__ == "__main__":
     freeze_support()

@@ -1,9 +1,9 @@
 import numpy as np
 
-from src.experiments.util import train_svm, plot_bin_count_histogram
+from src.utilities.experiment_utils import train_svm, plot_bin_count_histogram
 from src.metrics.true_ece import true_ece_binned
 from src.utilities.data_generation import DataGeneration
-from src.utilities.datasets import gummy_worm_dataset, gummy_worm_dataset_hard
+from src.utilities.datasets import gummy_worm_dataset_hard
 
 
 def calculate_true_ece_and_plot_bin_count(dataset: DataGeneration, bins: int, samplesize: int):

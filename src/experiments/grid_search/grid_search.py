@@ -11,7 +11,7 @@ from _search_modified import GridSearchWithEstimatorOutput
 from src.experiments.grid_search.grid_search_utils import neural_network_info, logistic_regression_info, \
     random_forest_info, svm_info, sort_by_key_index, remove_every_nth_element, process_model, plot_absolute_metrics, \
     plot_relative_metrics
-from src.experiments.util import DATASETS, EMPTY_METRIC_DICT
+from src.utilities.experiment_utils import DATASETS, EMPTY_METRIC_DICT
 from src.utilities import utils
 
 

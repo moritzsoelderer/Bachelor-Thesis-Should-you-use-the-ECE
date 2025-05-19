@@ -5,7 +5,7 @@ from datetime import datetime
 import numpy as np
 from joblib import delayed, Parallel
 
-from src.experiments.util import EMPTY_METRIC_DICT, DATASETS, plot_bin_count_histogram
+from src.utilities.experiment_utils import EMPTY_METRIC_DICT, DATASETS, plot_bin_count_histogram
 from src.experiments.varying_test_sample_size_dataset_family.varying_sample_size_dataset_family_util import \
     generate_train_test_split, \
     calculate_true_ece_on_dists_and_grid, process_model, flatten_results, persist_to_pickle, \

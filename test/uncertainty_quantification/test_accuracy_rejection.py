@@ -3,7 +3,7 @@ import unittest
 import numpy.testing as npt
 from sklearn.model_selection import train_test_split
 
-from src.experiments.util import train_svm
+from src.utilities.experiment_utils import train_svm
 from src.uncertainty_quantification.accuracy_rejection import accuracy_rejection, plot_accuracy_rejection
 from src.data_generation.datasets import gummy_worm_dataset
 

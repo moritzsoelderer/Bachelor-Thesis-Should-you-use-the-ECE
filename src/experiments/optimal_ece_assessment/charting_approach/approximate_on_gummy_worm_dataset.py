@@ -2,10 +2,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.model_selection import train_test_split
 
-from src.experiments.util import predict_sklearn, train_svm, train_neural_network, train_logistic_regression, \
+from src.utilities.experiment_utils import predict_sklearn, train_svm, train_neural_network, train_logistic_regression, \
     train_random_forest, predict_tf
 from src.metrics.ece import ece
-from src.metrics.primitive_ece_sample_assessment import approximate_optimal_ece
+from src.experiments.optimal_ece_assessment.charting_approach.approximate_optimal_ece import approximate_optimal_ece
 from src.metrics.true_ece import true_ece_binned
 from src.data_generation.datasets import gummy_worm_dataset
 
