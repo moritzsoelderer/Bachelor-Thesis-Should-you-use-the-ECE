@@ -52,6 +52,7 @@ def calculate_ece_on_subsets(y_pred, y_true, n_bins, subsets_sizes):
 
 def generate_ece_data(
         num_samples: int = 40000,
+        num_samples_true_ece: int = 400000,
         min_features: int = 2,
         max_features: int = 20,
         min_temperature: float = 0.5,
@@ -71,7 +72,14 @@ def generate_ece_data(
 
     # Generate random dataset
     data_generator = sdg.SyntheticDataGenerator(num_features, num_classes=2, hidden_layers=[16])
-    X, y, p_true = data_generator.generate_data(num_samples, temperature=temperature, mask_ratio=mask_ratio)
+    X, y, p_true = data_generator.generate_data(num_samples + num_samples_true_ece, temperature=temperature, mask_ratio=mask_ratio)
+
+    X_true_ece = X[num_samples:]
+    p_true_true_ece = p_true[num_samples:]
+
+    X = X[:num_samples]
+    y = y[:num_samples]
+    p_true = p_true[:num_samples]
 
     ### Plot
     """
@@ -102,27 +110,36 @@ def generate_ece_data(
     y_train, p_true_train = zip(*y_p_train)
     y_test, p_true_test = zip(*y_p_test)
 
-    # Train models and gather predictions
-    p_pred_svm = util.train_svm(X_train, y_train).predict_proba(X_test)
-    p_pred_nn = util.train_neural_network(X_train, y_train, sample_dim=num_features).predict(X_test)
-    p_pred_lr = util.train_logistic_regression(X_train, y_train).predict_proba(X_test)
-    p_pred_rf = util.train_random_forest(X_train, y_train).predict_proba(X_test)
+    # Train models
+    svm = util.train_svm(X_train, y_train)
+    nn = util.train_neural_network(X_train, y_train, sample_dim=num_features)
+    lr = util.train_logistic_regression(X_train, y_train)
+    rf = util.train_random_forest(X_train, y_train)
 
     sample_sizes = np.linspace(100, len(X_test), 100).astype(np.int64)
 
     model_results = []
 
     # Calculate True ECE, ECEs and Optimal ECE
-    for model, pred in [("SVM", p_pred_svm), ("Neural Network", p_pred_nn), ("Logistic Regression", p_pred_lr),
-                        ("Random Forest", p_pred_rf)]:
-        true_ece, _ = true_ece_binned(pred, p_true_test, np.linspace(0, 1, 15))
+    for model_name, model in [
+        ("SVM", svm), ("Neural Network", nn),
+        ("Logistic Regression", lr), ("Random Forest", rf)
+    ]:
+        if model_name == "Neural Network":
+            pred = model.predict(X_test)
+            pred_true_ece = model.predict(X_true_ece)
+        else:
+            pred = model.predict_proba(X_test)
+            pred_true_ece = model.predict_proba(X_true_ece)
+
+        true_ece, _ = true_ece_binned(pred_true_ece, p_true_true_ece, np.linspace(0, 1, 15))
 
         eces = calculate_ece_on_subsets(pred, y_test, 15, sample_sizes)
         optimal_ece, _, optimal_sample_size = find_optimal_ece(eces, [true_ece] * len(sample_sizes), sample_sizes)
         accuracy = accuracy_score(y_test, np.argmax(pred, axis=1))
 
         model_results.append({
-            "model_name": model,
+            "model_name": model_name,
             "p_test": pred,
             "True ECE Dists (Binned - 15 Bins)": true_ece,
             "ECEs": eces,
@@ -156,10 +173,11 @@ if __name__ == "__main__":
 
     # Initialize Parameters
     num_samples = 40000
+    num_samples_true_ece = 400000
     min_features = 2
     max_features = 20
-    min_temperature = 0.5
-    max_temperature = 1.5
+    min_temperature = 0
+    max_temperature = 1
     min_mask_ratio = 0.0
     max_mask_ratio = 0.5
 
@@ -174,7 +192,7 @@ if __name__ == "__main__":
     for i in range(batch_iterations):
         with parallel_config(verbose=100):
             results = Parallel(n_jobs=-1, verbose=10)(  # n_jobs=-1 uses all available CPUs
-                delayed(generate_ece_data)(num_samples, min_features, max_features, min_temperature, max_temperature,
+                delayed(generate_ece_data)(num_samples, num_samples_true_ece, min_features, max_features, min_temperature, max_temperature,
                                            min_mask_ratio, max_mask_ratio)
                 for j in range(batch_size)
             )
