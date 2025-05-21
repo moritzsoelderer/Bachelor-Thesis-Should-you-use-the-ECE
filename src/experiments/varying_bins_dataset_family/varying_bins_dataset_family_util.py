@@ -17,7 +17,7 @@ from src.metrics.tce import tce
 from src.metrics.true_ece import true_ece_binned
 
 
-def process_model(estimators, X_tests, y_true_tests, bins, predict_proba_fun):
+def process_model(predicted_probabilitiess, y_true_tests, bins):
     # Declare State Variables #
     metric_values = {
         "Accuracy": [],
@@ -49,12 +49,10 @@ def process_model(estimators, X_tests, y_true_tests, bins, predict_proba_fun):
         "ACE": []
     }
 
-    for index, estimator in enumerate(estimators):
-        X_test = X_tests[index]
+    for index, predicted_probabilities in enumerate(predicted_probabilitiess):
         y_test = y_true_tests[index]
 
         # Predict Probabilities #
-        predicted_probabilities = predict_proba_fun(estimator, X_test)
         y_pred = np.argmax(predicted_probabilities, axis=1)
         logging.debug("Predicted Probabilities Shape: %s", predicted_probabilities.shape)
 

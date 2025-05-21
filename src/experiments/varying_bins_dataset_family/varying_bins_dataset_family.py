@@ -119,6 +119,8 @@ def run(dataset_name, dataset_size, min_bin_size, max_bin_size, num_steps, true_
         plot_bin_count_histogram(true_ece_values_100_bins[0][3], "Bin Counts True ECE Dists (Binned - 100 Bins)")
         plot_bin_count_histogram(true_ece_values_15_bins[0][3], "Bin Counts True ECE Dists (Binned - 15 Bins)")
 
+        pred_fun = model_pred_fun_tuple[1]
+        predicted_probabilitiess = [pred_fun(estimator, X_test[i]) for i, estimator in enumerate(estimators)]
 
         ### Execution
         logging.info(
@@ -127,7 +129,7 @@ def run(dataset_name, dataset_size, min_bin_size, max_bin_size, num_steps, true_
         )
 
         results = Parallel(n_jobs=-1, verbose=10)(  # n_jobs=-1 uses all available CPUs
-            delayed(process_model)(estimators, X_test, y_true_test, bins, model_pred_fun_tuple[1])
+            delayed(process_model)(predicted_probabilitiess, y_true_test, bins)
             for bins in binss
         )
         results = sorted(results, key=lambda x: x["bins"], reverse=False)
