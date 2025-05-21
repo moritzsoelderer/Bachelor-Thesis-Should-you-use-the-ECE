@@ -91,10 +91,10 @@ def calculate_true_ece_on_dists_and_grid(data_generation, X_dist, estimator, pre
     dist_predictions = predict_proba_fun(estimator, X_dist)
     grid_predictions = predict_proba_fun(estimator, X_grid)
 
-    dist_true_ece, dist_bin_count = true_ece_binned(dist_predictions, p_true_dist, np.linspace(0, 1, n_bins + 1))
-    grid_true_ece, grid_bin_count = true_ece_binned(grid_predictions, p_true_grid, np.linspace(0, 1, n_bins + 1))
+    dist_true_ece, _ = true_ece_binned(dist_predictions, p_true_dist, np.linspace(0, 1, n_bins + 1))
+    grid_true_ece, _ = true_ece_binned(grid_predictions, p_true_grid, np.linspace(0, 1, n_bins + 1))
 
-    return grid_true_ece, grid_bin_count, dist_true_ece, dist_bin_count
+    return grid_true_ece, dist_true_ece
 
 
 def generate_train_test_split(data_generation, samples_per_distribution, test_size, train_size, random_state):
@@ -112,30 +112,37 @@ def generate_train_test_split(data_generation, samples_per_distribution, test_si
     return X_train, X_test, y_true_train, y_true_test
 
 
-def train_models(X_train, y_true_train, sample_dim):
+def train_models(X_train, y_true_train, sample_dim, models="all"):
+    if models == "all":
+        models = ["svm", "nn", "lr", "rf"]
     length = len(X_train)
 
     assert length == len(y_true_train)
-
     logging.info("Training Models")
-    logging.info("Training SVM")
-    svms = [train_svm(X_train[index], y_true_train[index]) for index in range(length)]
 
-    logging.info("Training Neural Network")
-    neural_networks = [train_neural_network(X_train[index], y_true_train[index], sample_dim) for index in range(length)]
+    return_dict = {}
 
-    logging.info("Training Logistic Regression")
-    logistic_regressions = [train_logistic_regression(X_train[index], y_true_train[index]) for index in range(length)]
+    if "svm" in models:
+        logging.info("Training SVM")
+        svms = [train_svm(X_train[index], y_true_train[index]) for index in range(length)]
+        return_dict["SVM"] = (svms, predict_sklearn)
 
-    logging.info("Training Random Forest")
-    random_forests = [train_random_forest(X_train[index], y_true_train[index]) for index in range(length)]
+    if "nn" in models:
+        logging.info("Training Neural Network")
+        neural_networks = [train_neural_network(X_train[index], y_true_train[index], sample_dim) for index in range(length)]
+        return_dict["Neural Network"] = (neural_networks, predict_tf)
 
-    return {
-        "SVM": (svms, predict_sklearn),
-        "Neural Network": (neural_networks, predict_tf),
-        "Logistic Regression": (logistic_regressions, predict_sklearn),
-        "Random Forest": (random_forests, predict_sklearn)
-    }
+    if "lr" in models:
+        logging.info("Training Logistic Regression")
+        logistic_regressions = [train_logistic_regression(X_train[index], y_true_train[index]) for index in range(length)]
+        return_dict["Logistic Regression"] = (logistic_regressions, predict_sklearn)
+
+    if "rf" in models:
+        logging.info("Training Random Forest")
+        random_forests = [train_random_forest(X_train[index], y_true_train[index]) for index in range(length)]
+        return_dict["Random Forest"] = (random_forests, predict_sklearn)
+
+    return return_dict
 
 
 def flatten_results(results, means, std_devs):

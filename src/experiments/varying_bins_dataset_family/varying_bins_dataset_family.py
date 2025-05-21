@@ -14,7 +14,7 @@ from src.utilities import utils
 from src.data_generation.data_generation import DataGeneration
 
 
-def run(dataset_name, dataset_size, min_bin_size, max_bin_size, num_steps, true_ece_sample_size):
+def run(dataset_name, dataset_size, min_bin_size, max_bin_size, num_steps, true_ece_sample_size, model_names):
     ### Config
     datetime_start = datetime.now()
     logging.basicConfig(
@@ -70,7 +70,7 @@ def run(dataset_name, dataset_size, min_bin_size, max_bin_size, num_steps, true_
     y_true_train = np.array([X_and_y_true[2] for X_and_y_true in Xs_and_y_trues])
     y_true_test = np.array([X_and_y_true[3] for X_and_y_true in Xs_and_y_trues])
 
-    models = train_models(X_train, y_true_train,  sample_dim=data_generations[0].n_features)
+    models = train_models(X_train, y_true_train,  sample_dim=data_generations[0].n_features, models=model_names)
 
     for model_name, model_pred_fun_tuple in models.items():
         logging.info("Model: %s", model_name)
@@ -88,36 +88,6 @@ def run(dataset_name, dataset_size, min_bin_size, max_bin_size, num_steps, true_
         # Sanity Check
         assert len(data_generations) == len(X_true_ece_dists) == len(estimators) == len(p_true_grid)
         assert len(p_true_grid) == len(X_test) == len(y_true_test)
-
-        ### True ECE Calculation
-        true_ece_values_15_bins = [
-            calculate_true_ece_on_dists_and_grid(
-                data_generations[index], X_true_ece_dists[index],
-                estimator, model_pred_fun_tuple[1], X_true_ece_grid,
-                p_true_grid[index], 15) for index, estimator in enumerate(estimators)
-        ]
-        true_ece_values_100_bins = [
-            calculate_true_ece_on_dists_and_grid(
-                data_generations[index], X_true_ece_dists[index],
-                estimator, model_pred_fun_tuple[1], X_true_ece_grid,
-                p_true_grid[index], 100) for index, estimator in enumerate(estimators)
-        ]
-
-        means["True ECE Dists (Binned - 15 Bins)"] = [np.mean([vals[2] for vals in true_ece_values_15_bins])] * num_steps
-        means["True ECE Dists (Binned - 100 Bins)"] = [np.mean([vals[2] for vals in true_ece_values_100_bins])] * num_steps
-        means["True ECE Grid (Binned - 15 Bins)"] = [np.mean([vals[0] for vals in true_ece_values_15_bins])] * num_steps
-        means["True ECE Grid (Binned - 100 Bins)"] = [np.mean([vals[0] for vals in true_ece_values_100_bins])] * num_steps
-
-        std_devs["True ECE Dists (Binned - 15 Bins)"] = [np.std([vals[2] for vals in true_ece_values_15_bins])] * num_steps
-        std_devs["True ECE Dists (Binned - 100 Bins)"] = [np.std([vals[2] for vals in true_ece_values_100_bins])] * num_steps
-        std_devs["True ECE Grid (Binned - 15 Bins)"] = [np.std([vals[0] for vals in true_ece_values_15_bins])] * num_steps
-        std_devs["True ECE Grid (Binned - 100 Bins)"] = [np.std([vals[0] for vals in true_ece_values_100_bins])] * num_steps
-
-        ### Plot bin counts
-        plot_bin_count_histogram(true_ece_values_100_bins[0][1], "Bin Counts True ECE Grid (Binned - 100 Bins)")
-        plot_bin_count_histogram(true_ece_values_15_bins[0][1], "Bin Counts True ECE Grid (Binned - 15 Bins)")
-        plot_bin_count_histogram(true_ece_values_100_bins[0][3], "Bin Counts True ECE Dists (Binned - 100 Bins)")
-        plot_bin_count_histogram(true_ece_values_15_bins[0][3], "Bin Counts True ECE Dists (Binned - 15 Bins)")
 
         pred_fun = model_pred_fun_tuple[1]
         predicted_probabilitiess = [pred_fun(estimator, X_test[i]) for i, estimator in enumerate(estimators)]
@@ -138,6 +108,43 @@ def run(dataset_name, dataset_size, min_bin_size, max_bin_size, num_steps, true_
 
         means, std_devs = flatten_results(results, means, std_devs)
 
+        def calc_true_ece(index, estimator, bins):
+            return calculate_true_ece_on_dists_and_grid(
+                data_generations[index], X_true_ece_dists[index],
+                estimator, model_pred_fun_tuple[1], X_true_ece_grid,
+                p_true_grid[index], bins)
+
+        logging.info("Calculating True ECE with 15 bins")
+        true_ece_values_15_bins = np.array(Parallel(n_jobs=-1)(
+            delayed(calc_true_ece)(index, estimator, 15) for index, estimator in enumerate(estimators)
+        ))
+        logging.info("Calculating True ECE with 100 bins")
+        true_ece_values_100_bins = np.array(Parallel(n_jobs=-1)(
+            delayed(calc_true_ece)(index, estimator, 100) for index, estimator in enumerate(estimators)
+        ))
+
+        logging.info("Calculating True ECE Means and Std Dev")
+
+        grid_15 = true_ece_values_15_bins[:, 0]
+        dists_15 = true_ece_values_15_bins[:, 1]
+        grid_100 = true_ece_values_100_bins[:, 0]
+        dists_100 = true_ece_values_100_bins[:, 1]
+
+        means.update({
+            "True ECE Dists (Binned - 15 Bins)": [np.mean(dists_15)] * num_steps,
+            "True ECE Dists (Binned - 100 Bins)": [np.mean(dists_100)] * num_steps,
+            "True ECE Grid (Binned - 15 Bins)": [np.mean(grid_15)] * num_steps,
+            "True ECE Grid (Binned - 100 Bins)": [np.mean(grid_100)] * num_steps
+        })
+
+        std_devs.update({
+            "True ECE Dists (Binned - 15 Bins)": [np.std(dists_15)] * num_steps,
+            "True ECE Dists (Binned - 100 Bins)": [np.std(dists_100)] * num_steps,
+            "True ECE Grid (Binned - 15 Bins)": [np.std(grid_15)] * num_steps,
+            "True ECE Grid (Binned - 100 Bins)": [np.std(grid_100)] * num_steps
+        })
+
+        logging.info("Persisting...")
         ### Data Persistence
         persist_to_pickle(estimators, X_true_ece_dists, X_true_ece_grid, p_true_grid, means, std_devs, binss, savePath)
 

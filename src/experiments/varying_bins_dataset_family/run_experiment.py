@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
     arguments = sys.argv
 
-    assert len(arguments) == 7, ("You should pass 6 arguments: dataset_name, dataset_size, min_bin_size, max_bin_size, num_steps "
+    assert len(arguments) >= 7, ("You should pass at least 6 arguments: dataset_name, dataset_size, min_bin_size, max_bin_size, num_steps "
                                  "and true_ece_sample_size")
 
     dataset_name = arguments[1]
@@ -19,10 +19,17 @@ if __name__ == "__main__":
     num_steps = int(arguments[5])
     true_ece_sample_size = int(arguments[6])
 
+    models = []
+    for model in arguments[7:]:
+        models.append(model)
+
+    if not models:
+        models = "all"
+
     assert "family" in dataset_name, ("This Experiment is only configured for dataset families")
 
     # Change working directory to the script's directory
     script_dir = os.path.dirname(os.path.abspath(__file__))
     os.chdir(script_dir)
 
-    run(dataset_name, dataset_size, min_bin_size, max_bin_size, num_steps, true_ece_sample_size)
+    run(dataset_name, dataset_size, min_bin_size, max_bin_size, num_steps, true_ece_sample_size, models)
