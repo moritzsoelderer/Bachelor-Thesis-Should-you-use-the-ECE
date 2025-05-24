@@ -42,8 +42,8 @@ def true_ece_binned(p_pred, p_true, bin_boundaries):
     bin_lowers = bin_boundaries[:-1]
     bin_uppers = bin_boundaries[1:]
 
-    p_pred = np.array(p_pred)[:, 1]
-    p_true = np.array(p_true)[:, 1]
+    p_pred = np.max(p_pred, axis=-1)
+    p_true = np.max(p_true, axis=-1)
 
     calibration_error = 0.0
     samples_in_bins = []
