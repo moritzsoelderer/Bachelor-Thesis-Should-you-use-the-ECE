@@ -15,7 +15,7 @@ from src.utilities.experiment_utils import DATASETS, EMPTY_METRIC_DICT
 from src.utilities import utils
 
 
-def run(dataset_name, dataset_size, num_folds, true_ece_sample_size, test_size=0.2):
+def run(dataset_name, dataset_size, num_folds, train_test_split_seed, test_size, true_ece_sample_size):
     ### Config
     datetime_start = datetime.now()
     logging.basicConfig(
@@ -45,7 +45,8 @@ def run(dataset_name, dataset_size, num_folds, true_ece_sample_size, test_size=0
         "Random Forest": random_forest_info
     }
 
-    X_train, X_test, y_train, y_test = train_test_split(X, labels, test_size=test_size)
+    # Prepare data and obtain true probabilities
+    X_train, X_test, y_train, y_test = train_test_split(X, labels, test_size=test_size, random_state=train_test_split_seed)
     p_true = np.array(
         [[data_generation.cond_prob(x, k=0), data_generation.cond_prob(x, k=1)] for x in X_test])
 
@@ -58,13 +59,14 @@ def run(dataset_name, dataset_size, num_folds, true_ece_sample_size, test_size=0
     p_true_dists = [[1 - (p := data_generation.cond_prob(s, k=1)), p] for s in X_true_ece_dists]
     p_true_grid = [[1 - (p := data_generation.cond_prob(s, k=1)), p] for s in X_true_ece_grid]
 
+    # Perform grid search for all model classes and parameter grids
     for model_name, model_info in model_infos.items():
         logging.info(f"Model: {model_name}")
 
         model, parameter_grid = model_info()
 
         logging.info(" Performing GridSearch")
-        grid_search = GridSearchWithEstimatorOutput(
+        grid_search = GridSearchWithEstimatorOutput(  # Use modified GridSearch that outputs all estimators
             estimator=model, param_grid=parameter_grid, scoring='accuracy', cv=num_folds, n_jobs=-2, verbose=3
         )
         grid_search.fit(X_train, y_train)
@@ -77,7 +79,8 @@ def run(dataset_name, dataset_size, num_folds, true_ece_sample_size, test_size=0
 
         logging.info(f"Length Accuracies and Estimators: {len(estimators)}")
 
-        results = Parallel(n_jobs=-2, verbose=10)(  # n_jobs=-1 uses all available CPUs
+        # Calculate metrics on grid search estimators
+        results = Parallel(n_jobs=-2, verbose=10)(
             delayed(process_model)(
                 accuracy=accuracies[index],
                 estimator=estimator,
@@ -111,6 +114,7 @@ def run(dataset_name, dataset_size, num_folds, true_ece_sample_size, test_size=0
         logging.info(f"Length Metric Values: {len(metric_values)}")
         logging.info(" Plotting...")
 
+        # -1 equals Accuracy here, False ascending, 0 True ECE Grid (Binned 15 Bins) and True descending
         indices_and_sort_order = [(-1, False), (0, True)]
         for index, sort_order in indices_and_sort_order:
             metric_values_sorted = sort_by_key_index(metric_values, index, reverse=sort_order)
