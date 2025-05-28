@@ -187,7 +187,7 @@ def plot_experiment(model_name, dataset_title, means, std_devs, binss, filename_
         ax.fill_between(binss, metric_means - np.array(std_devs[metric]),
                         metric_means + np.array(std_devs[metric]), alpha=0.2)
     plt.subplots_adjust(left=0.15, right=0.95, top=0.9, bottom=0.25)
-    plt.xlabel('Sample Size', fontsize=12)
+    plt.xlabel('Bins', fontsize=12)
     plt.ylabel('Metric Values', fontsize=12)
     plt.title(f'Varying Bins - {model_name}, {dataset_title} Family', fontsize=14, fontweight='bold')
     plt.tight_layout()
@@ -207,7 +207,7 @@ def plot_experiment(model_name, dataset_title, means, std_devs, binss, filename_
         ax.fill_between(binss, relative_means - np.array(std_devs[metric]),
                         relative_means + np.array(std_devs[metric]), alpha=0.2)
     plt.subplots_adjust(left=0.15, right=0.95, top=0.9, bottom=0.25)
-    plt.xlabel('Sample Size', fontsize=12)
+    plt.xlabel('Bins', fontsize=12)
     plt.ylabel('Metric Values (Relative to True ECE Grid (Binned - 100 Bins))', fontsize=12)
     plt.title(f'Varying Bins - {model_name}, {dataset_title} Family', fontsize=14, fontweight='bold')
     plt.tight_layout()

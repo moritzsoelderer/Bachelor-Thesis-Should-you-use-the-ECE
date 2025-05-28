@@ -14,7 +14,7 @@ from src.utilities import utils
 from src.data_generation.data_generation import DataGeneration
 
 
-def run(dataset_name, dataset_size, min_bin_size, max_bin_size, num_steps, true_ece_sample_size, model_names):
+def run(dataset_name, dataset_size, min_bin_size, max_bin_size, num_steps, true_ece_sample_size, train_test_split_seed, model_names):
     ### Config
     datetime_start = datetime.now()
     logging.basicConfig(
@@ -60,7 +60,7 @@ def run(dataset_name, dataset_size, min_bin_size, max_bin_size, num_steps, true_
 
     Xs_and_y_trues = [
         generate_train_test_split(
-            data_generation, int(dataset_size / num_dists), 0.5, 0.5, 42
+            data_generation, int(dataset_size / num_dists), 0.5, 0.5, train_test_split_seed
         )
         for data_generation in data_generations
     ]
