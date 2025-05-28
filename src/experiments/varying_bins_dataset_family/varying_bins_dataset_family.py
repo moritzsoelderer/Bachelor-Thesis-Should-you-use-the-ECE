@@ -14,7 +14,7 @@ from src.utilities import utils
 from src.data_generation.data_generation import DataGeneration
 
 
-def run(dataset_name, dataset_size, min_bin_size, max_bin_size, num_steps, true_ece_sample_size, train_test_split_seed, model_names):
+def run(dataset_name, dataset_size, min_bin_size, max_bin_size, num_steps, train_test_split_seed, true_ece_sample_size, model_names):
     ### Config
     datetime_start = datetime.now()
     logging.basicConfig(
@@ -30,8 +30,8 @@ def run(dataset_name, dataset_size, min_bin_size, max_bin_size, num_steps, true_
 
     logging.info(
         f"Received command line arguments: dataset_name={dataset_name}, dataset_size={dataset_size}, "
-        f"min_bin_size={min_bin_size}, max_bin_size{max_bin_size}, num_steps={num_steps}, true_ece"
-        f"_sample_size={true_ece_sample_size}"
+        f"min_bin_size={min_bin_size}, max_bin_size={max_bin_size}, num_steps={num_steps}, train_test_split_seed={train_test_split_seed}, "
+        f"true_ece_sample_size={true_ece_sample_size}, model_names={model_names}"
     )
 
     binss = np.linspace(min_bin_size, max_bin_size, num_steps, dtype=np.uint32)
