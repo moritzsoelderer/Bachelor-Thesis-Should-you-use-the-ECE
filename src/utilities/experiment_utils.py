@@ -40,12 +40,13 @@ predict_tf = lambda model, X_test: model.predict(X_test, verbose=0)
 
 
 def train_svm(X_train, y_train):
-    svm_model = SVC(probability=True)
+    svm_model = SVC(probability=True, random_state=42)
     svm_model.fit(X_train, y_train)
     return svm_model
 
 
 def train_neural_network(X_train, y_train, sample_dim):
+    tf.random.set_seed(42)  # ensure reproducibility
     y_categorical = tf.keras.utils.to_categorical(y_train)
     model = tf.keras.Sequential()
     model.add(tf.keras.layers.Dense(50, activation="tanh"))
@@ -56,13 +57,13 @@ def train_neural_network(X_train, y_train, sample_dim):
 
 
 def train_logistic_regression(X_train, y_train):
-    model = LogisticRegression()
+    model = LogisticRegression(random_state=42)
     model.fit(X_train, y_train)
     return model
 
 
 def train_random_forest(X_train, y_train):
-    model = RandomForestClassifier(n_estimators=100)
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
     model.fit(X_train, y_train)
     return model
 
@@ -79,20 +80,20 @@ def plot_probability_masks(X, p_true, predictions, filename=None, date_time=date
         prob_diff_path = None
 
     p_pred_plot = utils.plot_samples_probability_mask(X, predictions,
-                                        colorbar_label='Predicted Probability (Positive Class)',
-                                        title='Predicted Probabilities (Positive Class)',
-                                        save_path=p_pred_path,
-                                        show=show)
+                                                      colorbar_label='Predicted Probability (Positive Class)',
+                                                      title='Predicted Probabilities (Positive Class)',
+                                                      save_path=p_pred_path,
+                                                      show=show)
     p_true_plot = utils.plot_samples_probability_mask(X, p_true,
-                                        colorbar_label='True Probability (Positive Class)',
-                                        title='True Probabilities (Positive Class)',
-                                        save_path=p_true_path,
-                                        show=show)
+                                                      colorbar_label='True Probability (Positive Class)',
+                                                      title='True Probabilities (Positive Class)',
+                                                      save_path=p_true_path,
+                                                      show=show)
     prob_diff_plot = utils.plot_samples_probability_mask(X, np.abs(predictions - p_true),
-                                        colorbar_label='Probability Difference (Positive Class)',
-                                        title='Difference Predicted and True Probabilities (Positive Class)',
-                                        save_path=prob_diff_path,
-                                        show=show)
+                                                         colorbar_label='Probability Difference (Positive Class)',
+                                                         title='Difference Predicted and True Probabilities (Positive Class)',
+                                                         save_path=prob_diff_path,
+                                                         show=show)
 
     return p_pred_plot, p_true_plot, prob_diff_plot
 
@@ -105,4 +106,3 @@ def plot_bin_count_histogram(bin_count, title):
     plt.title(title, fontsize=14, fontweight='bold')
     plt.grid(True, linestyle='--', alpha=0.6)
     plt.show(block=False)
-
