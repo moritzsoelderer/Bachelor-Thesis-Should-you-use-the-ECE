@@ -1,5 +1,7 @@
-# Project Overview
+## Project Overview
 
+
+### General Information
 This repository contains the source code for Moritz Soelderer's Bachelor Thesis _Should you make use of the ECE metric?
 A comparison of Calibration Error Metrics_.
 
@@ -11,19 +13,19 @@ For detailed information about conducted experiments and findings, please refer 
 
 
 
-## License Information
+### License
 - The code contributed by Moritz Soelderer is licensed under the MIT License.
 - Third party code and libraries are licensed under their respective license.
 
 See the `LICENSE.md` [here](./LICENSE.md) file for more details.
 
-## Modifications to Scikit-learn
+### Modifications to Scikit-learn
 This codebase contains a modified code from the scikit-learn library. 
 The `GridSearchCV` class located in `sklearn.model_selection._search`, was modified in a way
 that it outputs all trained estimators after performing grid search. The modified file can be found
 [here](src/experiments/grid_search/_search_modified.py).
 
-## Project Structure
+### Project Structure
 - `data_generation` contains code related to the generation of synthetic data and the definitions of synthetic datasets
 - `metrics` contains the definitions of calibration error metrics
 - `utilities` comprises utility functions such as parameter checks for metrics, as well as utilities for experiments
@@ -36,7 +38,7 @@ as well as `misc_scripts` were not discussed in the thesis, as none of these pro
 did not find any use in this thesis.
 
 
-## Nomenclature
+### Nomenclature
 For the sake of consistency a uniform nomenclature/naming convention is mostly ensured across this 
 repository. All source code, except third party code, should adhere to the following rules:
 
