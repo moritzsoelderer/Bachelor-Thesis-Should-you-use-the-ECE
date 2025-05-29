@@ -29,8 +29,9 @@ def run(dataset_name, dataset_size, num_folds, train_test_split_seed, test_size,
     )
 
     logging.info(
-        f"Received command line arguments: dataset_name={dataset_name}, dataset_size={dataset_size}"
-        f" true_sample_size={true_ece_sample_size}"
+        f"Received command line arguments: dataset_name={dataset_name}, dataset_size={dataset_size}, "
+        f"num_folds={num_folds}, train_test_split_seed={train_test_split_seed}, test_size={test_size} and "
+        f"true_sample_size={true_ece_sample_size}"
     )
     
     dataset_info = DATASETS[dataset_name]
