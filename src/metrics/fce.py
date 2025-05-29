@@ -2,6 +2,15 @@ import numpy as np
 import skfuzzy
 
 
+"""
+    This code was adapted from:
+    
+    **Calibration Error Estimation Using Fuzzy Binning**  
+    GitHub Repository: https://github.com/bihani-g/fce
+    
+    No changes were made.
+"""
+
 def intervals(parts, duration):
     part_duration = duration / parts
     return [i * part_duration for i in range(parts)]
@@ -67,11 +76,7 @@ def fce(y_pred, y_true, n_bins):
         g_bin[bin_] = [x[bin_] for x in mem]
         total_mem_g_bin[bin_] = sum(g_bin[bin_])
 
-        # print(total_mem_g_bin[bin_])
-
         acc_sum_g_bin[bin_], conf_sum_g_bin[bin_] = fuzzy_conf(g_bin[bin_], correct, prob_y)
-
-        # print(acc_sum_g_bin[bin_], conf_sum_g_bin[bin_])
 
         if total_mem_g_bin[bin_] != 0:
             acc_g_bin[bin_] = acc_sum_g_bin[bin_] / total_mem_g_bin[bin_]

@@ -3,7 +3,14 @@ from matplotlib import pyplot as plt
 from scipy.stats import binomtest, t
 
 
-# from sklearn.metrics._base import _check_pos_label_consistency
+"""
+    This code was adapted from:
+    
+    **TCE: A Test-Based Approach to Measuring Calibration Error**  
+    GitHub Repository: https://github.com/facebookresearch/tce
+    
+    Changes were made to lines 17, 18, 19, 39, 40, 41  
+"""
 
 def tce(preds, labels, siglevel=0.05, strategy='pavabc', n_min=10, n_max=1000, n_bin=10, savepath=False, ymax=None):
     assert labels.shape[0] != n_min, "The minimum bin size equals to the data size. No binning needed."
