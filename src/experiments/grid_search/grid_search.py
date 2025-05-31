@@ -37,7 +37,7 @@ def run(dataset_name, dataset_size, num_folds, train_test_split_seed, test_size,
     dataset_info = DATASETS[dataset_name]
     data_generation = dataset_info[0]()
     num_dists = data_generation.get_n_distributions()
-    X, labels = data_generation.generate_data(n_examples=int(dataset_size/4))
+    X, labels = data_generation.generate_data(n_examples=int(dataset_size/num_dists))
 
     model_infos = {
         "SVM": svm_info,
@@ -57,8 +57,8 @@ def run(dataset_name, dataset_size, num_folds, train_test_split_seed, test_size,
     X_true_ece_grid = utils.sample_uniformly_within_bounds(
         locs=dataset_info[1][0], scales=dataset_info[1][1], size=true_ece_sample_size
     )
-    p_true_dists = [[1 - (p := data_generation.cond_prob(s, k=1)), p] for s in X_true_ece_dists]
-    p_true_grid = [[1 - (p := data_generation.cond_prob(s, k=1)), p] for s in X_true_ece_grid]
+    p_true_dists = np.array([[1 - (p := data_generation.cond_prob(s, k=1)), p] for s in X_true_ece_dists])
+    p_true_grid = np.array([[1 - (p := data_generation.cond_prob(s, k=1)), p] for s in X_true_ece_grid])
 
     # Perform grid search for all model classes and parameter grids
     for model_name, model_info in model_infos.items():
