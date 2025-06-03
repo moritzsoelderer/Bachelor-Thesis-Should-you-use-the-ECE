@@ -2,8 +2,7 @@
 
 
 ### General Information
-This repository contains the source code for Moritz Soelderer's Bachelor Thesis _Should you make use of the ECE metric?
-A comparison of Calibration Error Metrics_.
+This repository contains the source code for Moritz Soelderer's Bachelor Thesis _Should you use the ECE Metric? A Comparison of Calibration Error Metrics_.
 
 The thesis gives insights regarding the reliability of the Expected Calibration Error (ECE) and compares it thereby,
 along with other calibration error metrics, to a binned approximation of the True Expected Calibration Error or True Calibration Error.
