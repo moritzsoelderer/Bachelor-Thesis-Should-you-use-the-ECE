@@ -42,6 +42,9 @@ def true_ece_binned(p_pred, p_true, bin_boundaries, return_metadata=False):
     bin_lowers = bin_boundaries[:-1]
     bin_uppers = bin_boundaries[1:]
 
+    p_pred = np.array(p_pred)
+    p_true = np.array(p_true)
+
     indices = np.argmax(p_pred, axis=-1)
     p_pred = p_pred[np.arange(p_pred.shape[0]), indices]
     p_true = p_true[np.arange(p_true.shape[0]), indices]

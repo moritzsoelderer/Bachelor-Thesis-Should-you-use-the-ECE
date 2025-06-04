@@ -16,9 +16,10 @@ if __name__ == "__main__":
     dataset_name = arguments[1]
     dataset_size = int(arguments[2])
     num_folds = int(arguments[3])
-    true_ece_sample_size = int(arguments[4])
-    train_test_split_seed = int(arguments[5])
-    test_size = int(arguments[6])
+    train_test_split_seed = int(arguments[4])
+    test_size = float(arguments[5])
+    true_ece_sample_size = int(arguments[6])
+
 
     assert "family" not in dataset_name, "This Experiment is not configured for dataset families"
 
